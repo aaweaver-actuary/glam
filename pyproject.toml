@@ -1,0 +1,32 @@
+[project]
+name = "glam"
+version = "0.1.0"
+description = "Generalized Linear/Additive Modeling"
+authors = [
+    { name = "Andy Weaver", email = "andrewayersweaver+github@gmail.com" }
+]
+dependencies = [
+    "duckdb>=0.9",
+    "polars>=1.0.0",
+    "pandas>=2.2.2",
+    "plotly>=5.23.0",
+    "statsmodels>=0.14.2",
+    "scikit-learn>=1.5.1",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+license = { text = "MIT" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/glam"]

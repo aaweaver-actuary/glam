@@ -1,0 +1,1 @@
+from glam.src.fitted_model.base_fitted_model import BaseModelResult
