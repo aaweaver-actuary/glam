@@ -2,16 +2,17 @@ from typing import Generator
 import pandas as pd
 import logging
 import copy
+
 from glam.src.data.base_model_data import BaseModelData
+from glam.src.enums.model_task import ModelTask
 from glam.src.fitters.base_model_fitter import BaseModelFitter
 from glam.src.model_list.base_model_list import BaseModelList
 from glam.src.fitted_model.base_fitted_model import BaseFittedModel
 from glam.src.data.data_prep import BaseDataSplitter, BasePreprocessor
-
 from glam.src.fitters.statsmodels_formula_glm_fitter import StatsmodelsFormulaGlmFitter
 from glam.src.model_list.default_model_list import DefaultModelList
-from glam.src.fitted_model.statsmodels_fitted_glm import StatsmodelsFittedGlm
 from glam.src.data.data_prep import TimeSeriesDataSplitter, DefaultPreprocessor
+from glam.src.resid.binomial_deviance_resid import BinomialDevianceResid
 
 __all__ = ["BinaryGlmAnalysis"]
 
@@ -30,16 +31,13 @@ class BinaryGlmAnalysis:
         fitted_model: BaseFittedModel | None = None,
         splitter: BaseDataSplitter | None = None,
         preprocessor: BasePreprocessor | None = None,
+        task: ModelTask = ModelTask.CLASSIFICATION,
+        deviance_resid: BinomialDevianceResid | None = None,
     ):
         self._data = data
-        self._fitter = (
-            fitter if fitter is not None else StatsmodelsFormulaGlmFitter(data)
-        )
+        self._fitter = fitter if fitter is not None else StatsmodelsFormulaGlmFitter()
         self._models = models if models is not None else DefaultModelList()
-        self._fitted_model = (
-            fitted_model if fitted_model is not None else StatsmodelsFittedGlm(data)
-        )
-
+        self._fitted_model = fitted_model
         self._features = features if features is not None else []
         self._interactions = interactions if interactions is not None else []
 
@@ -49,6 +47,18 @@ class BinaryGlmAnalysis:
         self._preprocessor = (
             preprocessor if preprocessor is not None else DefaultPreprocessor(data)
         )
+
+        self._task = task
+        self._deviance_resid = deviance_resid
+
+    def __repr__(self):
+        if len(self.features) > 0:
+            return f"BinaryGlmAnalysis({self.linear_formula})"
+
+        return f"BinaryGlmAnalysis({self.data.y.name} ~ 1)"
+
+    def __str__(self):
+        return self.__repr__()
 
     def copy(self):
         return copy.deepcopy(self)
@@ -63,7 +73,7 @@ class BinaryGlmAnalysis:
 
     @property
     def X_y_generator(self) -> tuple:
-        for X_train, y_train, X_test, y_test in self.splitter.X_y_generator(self.data):
+        for X_train, y_train, X_test, y_test in self.splitter.X_y_generator:
             yield X_train[self.features], y_train, X_test[self.features], y_test
 
     @property
@@ -96,7 +106,7 @@ class BinaryGlmAnalysis:
         self.models = current_models
 
     def get_model(self, index: int):
-        return self.models.model(index)
+        return self.models.model_lookup[index]
 
     @property
     def features(self) -> list[str]:
@@ -118,16 +128,6 @@ class BinaryGlmAnalysis:
     @features.setter
     def features(self, features: list[str]) -> None:
         self._features = features
-
-    @property
-    def interactions(self) -> list[str]:
-        """Return the list of interaction terms."""
-        return self._interactions
-
-    @interactions.setter
-    def interactions(self, interactions: list[pd.Series]) -> None:
-        """Add the interaction terms to the list of interactions."""
-        self._interactions = interactions
 
     def add_feature(self, feature: str) -> None:
         """Add the feature to the list of features."""
@@ -269,11 +269,9 @@ class BinaryGlmAnalysis:
 
     def fit_cv(self) -> Generator[BaseModelList, None, None]:
         """Fit/refit the model for each cross-validation fold using the current set of features."""
-        self.models = DefaultModelList()
-
         for X_train, y_train, X_test, y_test in self.X_y_generator:
             logger.debug(f"linear predictor: {self.linear_formula}")
-            model = self.fitter.fit(X_train, y_train, self.linear_formula)
+            model = self.fitter.fit(self.linear_formula, X_train, y_train)
             self.models.add_model(model)
             yield self.models
 
@@ -282,6 +280,10 @@ class BinaryGlmAnalysis:
         self.convert_data_to_floats()
         for _ in self.fit_cv():
             pass
+
+        self._deviance_resid = BinomialDevianceResid(
+            self.data, self.fitted_model, self.features
+        )
 
     @property
     def resid(self) -> dict[str, pd.Series]:
@@ -448,21 +450,6 @@ class BinaryGlmAnalysis:
             logger.error(f"Error in aic property function: {e}")
 
     @property
-    def bic(self) -> dict[int, float]:
-        """Return the BIC of the model for each cross-validation fold."""
-        dat, names = [], []
-        try:
-            logger.debug("Calculating BIC")
-            for i, model in enumerate(self.models.model_generator):
-                dat.append(self.fitted_model.bic(model))
-                names.append(i + 1)
-
-            logger.debug("BIC calculation complete")
-            return dict(zip(names, dat))
-        except Exception as e:
-            logger.error(f"Error in bic property function: {e}")
-
-    @property
     def deviance(self) -> dict[int, float]:
         """Return the deviance of the model for each cross-validation fold."""
         dat, names = [], []
@@ -519,7 +506,11 @@ class BinaryGlmAnalysis:
 
     def summary(self):
         """Return the summary of the model."""
-        try:
-            return self.get_model(9).summary()
-        except Exception as e:
-            logger.error(f"Error in summary function: {e}")
+        # model_list = self.models
+        # len_model_list = len(model_list.models)
+        # return self.get_model(len_model_list - 1).summary()
+        return self.models.model.summary()
+
+    @property
+    def deviance_resid(self) -> BinomialDevianceResid:
+        return self._deviance_resid

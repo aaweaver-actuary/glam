@@ -40,3 +40,9 @@ class BaseModelData(Protocol):
     def unanalyzed(self) -> list[str]:
         """Return the names of the unanalyzed features."""
         ...
+
+    def add_feature(self, name: str, values: pd.Series) -> None:
+        """Add a new feature to the data.
+
+        Used (for example) when creating dummy variables, interaction terms, or polynomial features."""
+        ...

@@ -42,6 +42,10 @@ charset-normalizer==3.3.2
 comm==0.2.2
     # via ipykernel
     # via ipywidgets
+contourpy==1.2.1
+    # via matplotlib
+cycler==0.12.1
+    # via matplotlib
 debugpy==1.8.5
     # via ipykernel
 decorator==5.1.1
@@ -54,6 +58,8 @@ executing==2.0.1
     # via stack-data
 fastjsonschema==2.20.0
     # via nbformat
+fonttools==4.53.1
+    # via matplotlib
 fqdn==1.5.1
     # via jsonschema
 h11==0.14.0
@@ -141,9 +147,13 @@ jupyterlab-server==2.27.3
     # via notebook
 jupyterlab-widgets==3.0.11
     # via ipywidgets
+kiwisolver==1.4.5
+    # via matplotlib
 markupsafe==2.1.5
     # via jinja2
     # via nbconvert
+matplotlib==3.9.2
+    # via glam
 matplotlib-inline==0.1.7
     # via ipykernel
     # via ipython
@@ -167,6 +177,8 @@ notebook-shim==0.2.4
     # via jupyterlab
     # via notebook
 numpy==2.1.0
+    # via contourpy
+    # via matplotlib
     # via pandas
     # via patsy
     # via pyarrow
@@ -180,6 +192,7 @@ packaging==24.1
     # via jupyter-server
     # via jupyterlab
     # via jupyterlab-server
+    # via matplotlib
     # via nbconvert
     # via plotly
     # via qtconsole
@@ -196,6 +209,8 @@ patsy==0.5.6
     # via statsmodels
 pexpect==4.9.0
     # via ipython
+pillow==10.4.0
+    # via matplotlib
 platformdirs==4.2.2
     # via jupyter-core
 plotly==5.23.0
@@ -223,9 +238,12 @@ pygments==2.18.0
     # via jupyter-console
     # via nbconvert
     # via qtconsole
+pyparsing==3.1.2
+    # via matplotlib
 python-dateutil==2.9.0.post0
     # via arrow
     # via jupyter-client
+    # via matplotlib
     # via pandas
 python-json-logger==2.0.7
     # via jupyter-events
@@ -261,6 +279,7 @@ rpds-py==0.20.0
 scikit-learn==1.5.1
     # via glam
 scipy==1.14.0
+    # via glam
     # via scikit-learn
     # via statsmodels
 send2trash==1.8.3

@@ -19,6 +19,12 @@ class DefaultModelData:
         self._cv = cv if cv is not None else "fold"
         self._unanalyzed = unanalyzed if unanalyzed is not None else []
 
+    def __repr__(self) -> str:
+        return f"DefaultModelData(y={self._y}, cv={self._cv}, shape={self._df.shape})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
     @property
     def df(self) -> pd.DataFrame:
         """Return the data frame."""
@@ -58,3 +64,7 @@ class DefaultModelData:
     def unanalyzed(self, unanalyzed: list[str]) -> None:
         """Set the names of the unanalyzed features."""
         self._unanalyzed = unanalyzed
+
+    def add_feature(self, name: str, values: pd.Series) -> None:
+        """Add a new feature to the data."""
+        self._df[name] = values
