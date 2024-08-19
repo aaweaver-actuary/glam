@@ -12,7 +12,7 @@ class DefaultModelData:
         y: str | None = None,
         cv: str | None = None,
         unanalyzed: str | list[str] | None = None,
-        is_time_series_cv: bool = False,
+        is_time_series_cv: bool = True,
     ):
         self._df = df
         self._y = y if y is not None else df.columns[-1]

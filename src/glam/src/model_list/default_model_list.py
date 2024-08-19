@@ -1,49 +1,25 @@
-from typing import Generator, Protocol
-
-from hit_ratio.old_glm.model_result import BaseModelResult
-
-
-class BaseModelList(Protocol):
-    @property
-    def models(self) -> list[BaseModelResult]: ...
-
-    @models.setter
-    def models(self, model: BaseModelResult) -> None: ...
-
-    @property
-    def model_generator(self) -> Generator[BaseModelResult, None, None]: ...
-
-    @property
-    def model_lookup(self) -> dict[int, BaseModelResult]: ...
-
-    @property
-    def model(self) -> BaseModelResult: ...
-
-    def get_model(self, index: int) -> BaseModelResult: ...
-
-    def add_model(self, model: BaseModelResult) -> None: ...
-
-    def reset_models(self) -> None: ...
+from glam.src.fitted_model.base_fitted_model import BaseFittedModel
+from typing import Generator
 
 
 class DefaultModelList:
-    def __init__(self, models: list[BaseModelResult] | None = None):
+    def __init__(self, models: list[BaseFittedModel] | None = None):
         self._models = models if models is not None else []
 
     @property
-    def models(self) -> list[BaseModelResult]:
+    def models(self) -> list[BaseFittedModel]:
         return self._models
 
     @models.setter
-    def models(self, model: BaseModelResult) -> None:
+    def models(self, model: BaseFittedModel) -> None:
         self._models.append(model)
 
-    def add_model(self, model: BaseModelResult) -> None:
+    def add_model(self, model: BaseFittedModel) -> None:
         """Add a model to the list of models.
 
         Parameters
         ----------
-        model : BaseModelResult
+        model : BaseFittedModel
             The model to add to the list of models.
         """
         current_models = self.models
@@ -58,29 +34,29 @@ class DefaultModelList:
         self._models = []
 
     @property
-    def model_generator(self) -> Generator[BaseModelResult, None, None]:
+    def model_generator(self) -> Generator[BaseFittedModel, None, None]:
         """Return a generator of models from the ordered list of models.
 
         Yields
         ------
-        BaseModelResult
+        BaseFittedModel
             A model from the list of models.
         """
         for model in self.models:
             yield model
 
     @property
-    def model_lookup(self) -> dict[int, BaseModelResult]:
+    def model_lookup(self) -> dict[int, BaseFittedModel]:
         """Return a dictionary of model indices to models.
 
         Returns
         -------
-        dict[int, BaseModelResult]
+        dict[int, BaseFittedModel]
             A dictionary of model indices to models.
         """
         return {index: model for index, model in enumerate(self.models)}
 
-    def get_model(self, index: int) -> BaseModelResult:
+    def get_model(self, index: int) -> BaseFittedModel:
         """Return the model at the given index.
 
         Parameters
@@ -90,7 +66,7 @@ class DefaultModelList:
 
         Returns
         -------
-        BaseModelResult
+        BaseFittedModel
             The model at the given index.
 
         Raises
@@ -101,6 +77,6 @@ class DefaultModelList:
         return self.model_lookup[index]
 
     @property
-    def model(self) -> BaseModelResult:
+    def model(self) -> BaseFittedModel:
         """Return the last model in the list."""
         return self.models[-1]
