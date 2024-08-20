@@ -12,15 +12,17 @@ from glam.src.data.data_prep import BaseDataSplitter, BasePreprocessor
 from glam.src.fitters.statsmodels_formula_glm_fitter import StatsmodelsFormulaGlmFitter
 from glam.src.model_list.default_model_list import DefaultModelList
 from glam.src.data.data_prep import TimeSeriesDataSplitter, DefaultPreprocessor
-from glam.src.resid.binomial_deviance_resid import BinomialDevianceResid
+from glam.src.calculators.residual_calculators.binomial_glm_residual_calculator import (
+    BinomialGlmResidualCalculator,
+)
 
-__all__ = ["BinaryGlmAnalysis"]
+__all__ = ["BinomialGlmAnalysis"]
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class BinaryGlmAnalysis:
+class BinomialGlmAnalysis:
     def __init__(
         self,
         data: BaseModelData,
@@ -32,7 +34,6 @@ class BinaryGlmAnalysis:
         splitter: BaseDataSplitter | None = None,
         preprocessor: BasePreprocessor | None = None,
         task: ModelTask = ModelTask.CLASSIFICATION,
-        deviance_resid: BinomialDevianceResid | None = None,
     ):
         self._data = data
         self._fitter = fitter if fitter is not None else StatsmodelsFormulaGlmFitter()
@@ -49,7 +50,6 @@ class BinaryGlmAnalysis:
         )
 
         self._task = task
-        self._deviance_resid = deviance_resid
 
     def __repr__(self):
         if len(self.features) > 0:
@@ -281,10 +281,6 @@ class BinaryGlmAnalysis:
         for _ in self.fit_cv():
             pass
 
-        self._deviance_resid = BinomialDevianceResid(
-            self.data, self.fitted_model, self.features
-        )
-
     @property
     def resid(self) -> dict[str, pd.Series]:
         """Return the residuals of the model."""
@@ -298,219 +294,45 @@ class BinaryGlmAnalysis:
     @property
     def mu(self) -> pd.Series:
         """Return the expected value of the response variable."""
-        return self.fitted_model.mu
+        return self.models.model.mu
 
     def yhat(self, X: pd.DataFrame | None = None) -> pd.Series:
         """Return the predicted class."""
         if X is None:
-            X = self.X
-        return self.fitted_model.yhat(X, self.get_model(9))
+            return self.models.model.mu.round(0)
+        return self.models.model.predict(X).round(0)
 
     def yhat_prob(self, X: pd.DataFrame | None = None) -> pd.Series:
         """Return the predicted probability of the positive class."""
         if X is None:
-            X = self.X
-        return self.fitted_model.yhat_prob(X, self.get_model(9))
-
-    @property
-    def accuracy(self) -> dict[int, float]:
-        """Return the accuracy of the model for each cross-validation fold."""
-        dat, names = [], []
-        for i, model in enumerate(self.models.model_generator):
-            X = self.X.loc[self.cv == i + 1]
-            y = self.y[self.cv == i + 1]
-            y_pred = self.fitted_model.yhat(X, model).round(0)
-            dat.append((y_pred == y).mean())
-            names.append(i + 1)
-
-        return dict(zip(names, dat))
-
-    @property
-    def precision(self) -> dict[int, float]:
-        """Return the precision of the model for each cross-validation fold."""
-        dat, names = [], []
-        for i, model in enumerate(self.models.model_generator):
-            X = self.X.loc[self.cv == i + 1]
-            y = self.y[self.cv == i + 1]
-            y_pred = self.fitted_model.yhat(X, model).round(0)
-            dat.append(((y_pred == 1) & (y == 1)).sum() / y_pred.sum())
-            names.append(i + 1)
-
-        return dict(zip(names, dat))
-
-    @property
-    def recall(self) -> dict[int, float]:
-        """Return the recall of the model for each cross-validation fold."""
-        dat, names = [], []
-        for i, model in enumerate(self.models.model_generator):
-            X = self.X.loc[self.cv == i + 1]
-            y = self.y[self.cv == i + 1]
-            y_pred = self.fitted_model.yhat(X, model).round(0)
-            dat.append(((y_pred == 1) & (y == 1)).sum() / y.sum())
-            names.append(i + 1)
-
-        return dict(zip(names, dat))
-
-    @property
-    def f1(self) -> dict[int, float]:
-        """Return the F1 score of the model for each cross-validation fold."""
-        dat, names = [], []
-        for i, model in enumerate(self.models.model_generator):
-            X = self.X.loc[self.cv == i + 1]
-            y = self.y[self.cv == i + 1]
-            y_pred = self.fitted_model.yhat(X, model).round(0)
-            precision = ((y_pred == 1) & (y == 1)).sum() / y_pred.sum()
-            recall = ((y_pred == 1) & (y == 1)).sum() / y.sum()
-            dat.append(2 * (precision * recall) / (precision + recall))
-            names.append(i + 1)
-
-        return dict(zip(names, dat))
-
-    @property
-    def auc_roc(self) -> dict[int, float]:
-        """Return the AUC-ROC of the model for each cross-validation fold."""
-        dat, names = [], []
-        try:
-            logger.debug("Calculating AUC-ROC")
-            for i, model in enumerate(self.models.model_generator):
-                X = self.X.loc[self.cv == i + 1]
-                y = self.y[self.cv == i + 1]
-                dat.append(self.fitted_model.roc_auc(X, y, model))
-                names.append(i + 1)
-
-            logger.debug("AUC-ROC calculation complete")
-            return dict(zip(names, dat))
-        except Exception as e:
-            logger.error(f"Error in auc_roc property function: {e}")
-
-    @property
-    def ap(self) -> dict[int, float]:
-        """Return the average precision of the model for each cross-validation fold."""
-        dat, names = [], []
-        try:
-            logger.debug("Calculating average precision")
-            for i, model in enumerate(self.models.model_generator):
-                X = self.X.loc[self.cv == i + 1]
-                y = self.y[self.cv == i + 1]
-                dat.append(self.fitted_model.ap(X, y, model))
-                names.append(i + 1)
-
-            logger.debug("Average precision calculation complete")
-            return dict(zip(names, dat))
-        except Exception as e:
-            logger.error(f"Error in ap property function: {e}")
-
-    @property
-    def log_loss(self) -> dict[int, float]:
-        """Return the log loss of the model for each cross-validation fold."""
-        dat, names = [], []
-        try:
-            logger.debug("Calculating log loss")
-            for i, model in enumerate(self.models.model_generator):
-                X = self.X.loc[self.cv == i + 1]
-                y = self.y[self.cv == i + 1]
-                dat.append(self.fitted_model.log_loss(X, y, model))
-                names.append(i + 1)
-
-            logger.debug("Log loss calculation complete")
-            return dict(zip(names, dat))
-        except Exception as e:
-            logger.error(f"Error in log_loss property function: {e}")
-
-    @property
-    def breier(self) -> dict[int, float]:
-        """Return the Brier score of the model for each cross-validation fold."""
-        dat, names = [], []
-        try:
-            logger.debug("Calculating Breier score")
-            for i, model in enumerate(self.models.model_generator):
-                X = self.X.loc[self.cv == i + 1]
-                y = self.y[self.cv == i + 1]
-                dat.append(self.fitted_model.breier(X, y, model))
-                names.append(i + 1)
-
-            logger.debug("Breier score calculation complete")
-            return dict(zip(names, dat))
-        except Exception as e:
-            logger.error(f"Error in breier property function: {e}")
-
-    @property
-    def aic(self) -> dict[int, float]:
-        """Return the AIC of the model for each cross-validation fold."""
-        dat, names = [], []
-        try:
-            logger.debug("Calculating AIC")
-            for i, model in enumerate(self.models.model_generator):
-                dat.append(self.fitted_model.aic(model))
-                names.append(i + 1)
-
-            logger.debug("AIC calculation complete")
-            return dict(zip(names, dat))
-        except Exception as e:
-            logger.error(f"Error in aic property function: {e}")
-
-    @property
-    def deviance(self) -> dict[int, float]:
-        """Return the deviance of the model for each cross-validation fold."""
-        dat, names = [], []
-        try:
-            logger.debug("Calculating deviance")
-            for i, model in enumerate(self.models.model_generator):
-                dat.append(self.fitted_model.deviance(model))
-                names.append(i + 1)
-
-            logger.debug("Deviance calculation complete")
-            return dict(zip(names, dat))
-        except Exception as e:
-            logger.error(f"Error in deviance property function: {e}")
-
-    @property
-    def mallow_cp(self) -> dict[int, float]:
-        """Return the Mallows Cp of the model for each cross-validation fold."""
-        dat, names = [], []
-        try:
-            logger.debug("Calculating Mallows Cp")
-            for i, model in enumerate(self.models.model_generator):
-                dat.append(self.fitted_model.mallow_cp(model))
-                names.append(i + 1)
-
-            logger.debug("Mallows Cp calculation complete")
-            return dict(zip(names, dat))
-        except Exception as e:
-            logger.error(f"Error in mallow_cp property function: {e}")
-
-    @property
-    def performance(self):
-        """Return the performance metrics for each cross-validation fold."""
-        df = pd.DataFrame(
-            {
-                "accuracy": pd.Series(self.accuracy, name="accuracy"),
-                "precision": pd.Series(self.precision, name="precision"),
-                "recall": pd.Series(self.recall, name="recall"),
-                "f1": pd.Series(self.f1, name="f1"),
-                "auc_roc": pd.Series(self.auc_roc, name="auc_roc"),
-                "aic": pd.Series(self.aic, name="aic"),
-                "deviance": pd.Series(self.deviance, name="deviance"),
-            }
-        )
-
-        df_mean = df.mean(axis=0)
-        df_mean.name = "mean"
-
-        df_std = df.std(axis=0)
-        df_std.name = "std"
-
-        df = pd.concat([df, df_mean.to_frame().T, df_std.to_frame().T], axis=0)
-
-        return df.round(3)
+            return self.mu
+        return self.models.model.predict(X)
 
     def summary(self):
         """Return the summary of the model."""
-        # model_list = self.models
-        # len_model_list = len(model_list.models)
-        # return self.get_model(len_model_list - 1).summary()
         return self.models.model.summary()
 
     @property
-    def deviance_resid(self) -> BinomialDevianceResid:
-        return self._deviance_resid
+    def residual_calculator(self) -> BinomialGlmResidualCalculator:
+        if self.models.model is None:
+            self.fit()
+
+        coefficients = self.models.model.params
+        return BinomialGlmResidualCalculator(
+            self.X, self.y, self.yhat_prob(), coefficients
+        )
+
+    @property
+    def deviance_residuals(self) -> pd.Series:
+        return self.residual_calculator.deviance_residuals()
+
+    @property
+    def pearson_residuals(self) -> pd.Series:
+        return self.residual_calculator.pearson_residuals(std=False)
+
+    @property
+    def std_pearson_residuals(self) -> pd.Series:
+        return self.residual_calculator.pearson_residuals(std=True)
+
+    def partial_residuals(self, feature: str) -> pd.Series:
+        return self.residual_calculator.partial_residuals(feature)

@@ -1,4 +1,4 @@
 from glam.analysis.base_analysis import BaseAnalysis
-from glam.analysis.binary_glm_analysis import BinaryGlmAnalysis
+from glam.analysis.binomial_glm_analysis import BinomialGlmAnalysis
 
-__all__ = ["BaseAnalysis", "BinaryGlmAnalysis"]
+__all__ = ["BaseAnalysis", "BinomialGlmAnalysis"]
