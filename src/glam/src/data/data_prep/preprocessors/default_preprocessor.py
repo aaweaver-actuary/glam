@@ -52,7 +52,16 @@ class DefaultPreprocessor:
                 except IndexError:
                     imputer[col] = df[col].dropna()[0]
                 except KeyError:
-                    imputer[col] = df[col].dropna()[0]
+                    if df[col].dropna().shape[0] == 0:
+                        imputer[col] = ""
+                    else:
+                        imputer[col] = df[col].fillna("ffill").iloc[0]
+                except Exception:
+                    try:
+                        imputer[col] = df[col].ffill().bfill().mode()[0]
+                    except Exception:
+                        imputer[col] = df[col].ffill().bfill().iloc[0]
+
             else:
                 imputer[col] = df[col].median()
         return imputer
