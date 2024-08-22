@@ -20,7 +20,7 @@ class DefaultModelData:
         self._unanalyzed = unanalyzed if unanalyzed is not None else []
 
     def __repr__(self) -> str:
-        return f"DefaultModelData(y={self._y}, cv={self._cv}, shape={self._df.shape})"
+        return f"DefaultModelData(y='{self._y}', cv='{self._cv}', df.shape={self._df.shape})"
 
     def __str__(self) -> str:
         return self.__repr__()
