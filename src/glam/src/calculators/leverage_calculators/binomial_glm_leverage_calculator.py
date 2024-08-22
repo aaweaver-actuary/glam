@@ -35,7 +35,7 @@ class BinomialGlmLeverageCalculator:
         """Calculate the leverage for all observations."""
         return pd.Series(np.diag(self.hat_matrix), index=self.X.index)
 
-    def calculate(self, index: int | None) -> float | pd.Series:
+    def calculate(self, index: int | None = None) -> float | pd.Series:
         """Calculate the leverage for a single observation or all observations."""
         if index is None:
             return self._leverage_all()

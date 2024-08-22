@@ -1,16 +1,10 @@
 import numpy as np
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
 
 class BaseHatMatrixCalculator(ABC):
-    @abstractmethod
-    def X(self) -> np.ndarray:
-        pass
-
-    @abstractmethod
-    def weight_matrix(self) -> np.ndarray:
-        pass
+    """Abstract base class for calculating the hat matrix."""
 
     def calculate(self) -> np.ndarray:
         """Calculate the hat matrix."""
@@ -20,8 +14,8 @@ class BaseHatMatrixCalculator(ABC):
         # term2 = (X'WX)^{-1}
         # term3 = X'W
 
-        term1 = self.X()
-        term2 = np.linalg.inv(self.X().T @ self.weight_matrix() @ self.X())
-        term3 = self.X().T @ self.weight_matrix()
+        term1 = self.X
+        term2 = np.linalg.inv(self.X.T @ self.weight_matrix @ self.X)
+        term3 = self.X.T @ self.weight_matrix
 
         return term1 @ term2 @ term3

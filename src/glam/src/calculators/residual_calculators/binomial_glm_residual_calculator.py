@@ -54,7 +54,7 @@ class BinomialGlmResidualCalculator:
                 "yhat_proba is not set in the constructor of the BinomialGlmResidualCalculator."
             )
 
-        return self._yhat_proba
+        return pd.Series(self._yhat_proba, index=self.y.index, name="yhat_proba")
 
     @property
     def beta(self) -> pd.Series:
@@ -63,13 +63,13 @@ class BinomialGlmResidualCalculator:
                 "beta is not set in the constructor of the BinomialGlmResidualCalculator."
             )
 
-        return self._beta
+        return pd.Series(self._beta, index=self.X.columns, name="beta")
 
     @property
     def hat_matrix(self) -> np.ndarray:
         """Calculate the hat matrix."""
         calculator = BinomialGlmHatMatrixCalculator(self.X, self.yhat_proba)
-        return calculator.calculate()
+        return calculator.weight_matrix
 
     @property
     def loglikelihood(self) -> pd.Series:
@@ -78,13 +78,29 @@ class BinomialGlmResidualCalculator:
         return calculator.calculate()
 
     @property
-    def sign_function(self) -> np.ndarray:
-        return np.where(self.y == 1, 1, -1)
+    def saturated_loglikelihood(self) -> pd.Series:
+        """Calculate the saturated loglikelihood."""
+        calculator = BinomialLogLikelihoodCalculator(self.y, self.y)
+        return calculator.calculate()
 
     @property
-    def variance_function(self) -> np.ndarray:
+    def unit_deviance(self) -> pd.Series:
+        """Calculate the unit deviance."""
+        return pd.Series(
+            2 * (self.saturated_loglikelihood - self.loglikelihood),
+            name="Unit Deviance",
+        )
+
+    @property
+    def sign_function(self) -> pd.Series:
+        return pd.Series(np.where(self.y.eq(1), 1, -1), name="Sign Function")
+
+    @property
+    def variance_function(self) -> pd.Series:
         """Defines the variance to mean relationship for the binomial distribution."""
-        return self.yhat_proba * (1 - self.yhat_proba)
+        return pd.Series(
+            (self.yhat_proba * (1 - self.yhat_proba)).to_numpy(), name="V(mu)"
+        )
 
     @property
     def leverage_calculator(self) -> BinomialGlmLeverageCalculator:
@@ -93,7 +109,7 @@ class BinomialGlmResidualCalculator:
     def deviance_residuals(self) -> pd.Series:
         """Calculate the deviance residuals."""
         return pd.Series(
-            2 * self.sign_function * np.sqrt(self.loglikelihood),
+            2 * self.sign_function * np.sqrt(self.unit_deviance),
             index=self.y.index,
             name="Deviance Residuals",
         )
@@ -103,7 +119,10 @@ class BinomialGlmResidualCalculator:
         unstandardized = (self.y - self.yhat_proba) / np.sqrt(self.variance_function)
 
         if std:
-            return pd.Series(unstandardized / np.sqrt(1 - self.leverage_calculator.calculate()), name="Pearson Residuals (Standardized)")
+            return pd.Series(
+                unstandardized / np.sqrt(1 - self.leverage_calculator.calculate()),
+                name="Pearson Residuals (Standardized)",
+            )
 
         return pd.Series(unstandardized, name="Pearson Residuals")
 
@@ -112,7 +131,7 @@ class BinomialGlmResidualCalculator:
 
         feature_index = self.X.columns.get_loc(feature)
         X_j = self.X.iloc[:, feature_index]
-        beta_j = self.beta[feature_index]
+        beta_j = self.beta.iloc[feature_index]
 
         return pd.Series(
             residuals - X_j * beta_j,

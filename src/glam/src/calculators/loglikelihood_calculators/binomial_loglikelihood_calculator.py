@@ -15,15 +15,22 @@ class BinomialLogLikelihoodCalculator:
 
     @property
     def y(self) -> pd.Series:
-        return self._y
+        return pd.Series(self._y, index=self._y.index, name="y")
 
     @property
     def yhat_proba(self) -> pd.Series:
-        return self._yhat_proba
+        return (
+            pd.Series(self._yhat_proba, index=self.y.index, name="yhat_proba")
+            .replace(0, 1e-6)
+            .replace(1, 1 - 1e-6)
+        )
 
     def calculate(self) -> pd.Series:
         """Calculate the cross-entropy loss."""
+        ln_p = pd.Series(np.log(self.yhat_proba), index=self.y.index)
+        ln_1_p = pd.Series(np.log(1 - self.yhat_proba), index=self.y.index)
         return pd.Series(
-            -self.y * np.log(self.yhat_proba)
-            - (1 - self.y) * np.log(1 - self.yhat_proba),
+            self.y * ln_p + (1 - self.y) * ln_1_p,
+            index=self.y.index,
+            name="loglikelihood",
         )
