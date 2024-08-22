@@ -48,9 +48,11 @@ class DefaultPreprocessor:
         for col in df.columns:
             if df[col].dtype in ["object", "category"]:
                 try:
-                    imputer[col] = df[col].mode()[0]
+                    imputer[col] = df[col].dropna().mode()[0]
                 except IndexError:
-                    imputer[col] = df[col][0]
+                    imputer[col] = df[col].dropna()[0]
+                except KeyError:
+                    imputer[col] = df[col].dropna()[0]
             else:
                 imputer[col] = df[col].median()
         return imputer
@@ -61,7 +63,6 @@ class DefaultPreprocessor:
         for col in self.df.columns:
             df.loc[:, col] = self.df[col].fillna(self.imputer[col])
         self.data.df = df
-        
 
     def run(self) -> pd.DataFrame:
         """Run all preprocessing steps."""
