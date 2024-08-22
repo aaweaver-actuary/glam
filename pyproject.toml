@@ -29,7 +29,10 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = []
+dev-dependencies = [
+    "hatchling>=1.25.0",
+    "hatch>=1.12.0",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true
