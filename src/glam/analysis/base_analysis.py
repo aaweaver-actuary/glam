@@ -1,3 +1,4 @@
+from concurrent.futures import ProcessPoolExecutor
 import copy
 from abc import ABC, abstractmethod
 import pandas as pd
@@ -48,6 +49,20 @@ class BaseAnalysis(ABC):
 
     def copy(self):
         return copy.deepcopy(self)
+
+    @classmethod
+    def from_self(cls, self) -> "BaseAnalysis":
+        return cls(
+            data=self._data,
+            fitter=self._fitter,
+            models=self._models,
+            features=self._features,
+            interactions=self._interactions,
+            fitted_model=self._fitted_model,
+            splitter=self._splitter,
+            preprocessor=self._preprocessor,
+            task=self._task,
+        )
 
     @property
     def data(self) -> BaseModelData:
@@ -244,18 +259,43 @@ class BaseAnalysis(ABC):
         for col in self.features:
             self.data.df[col] = self.convert_1_0_integers(self.data.df[col])
 
+    def _fit_single_fold(
+        self, X_train: pd.DataFrame, y_train: pd.Series, i: int | None = None
+    ) -> BaseFittedModel:
+        """Fits a single model for a cross-validation fold."""
+        return self.fitter.fit(self.linear_formula, X_train, y_train)
+        # if i is not None:
+        #     print(f"Fitting model for fold {i}")
+        # model = self.fitter.fit(self.linear_formula, X_train, y_train)
+        # if i is not None:
+        #     print(f"Completed model for fold {i}")
+        # return model
+
     def fit_cv(self) -> Generator[BaseModelList, None, None]:
         """Fit/refit the model for each cross-validation fold using the current set of features."""
-        for X_train, y_train, X_test, y_test in self.X_y_generator:
-            model = self.fitter.fit(self.linear_formula, X_train, y_train)
+        for X_train, y_train, _, _ in self.X_y_generator:
+            model = self._fit_single_fold(X_train, y_train)
             self.models.add_model(model)
             yield self.models
 
-    def fit(self) -> None:
+    def fit(self, parallel: bool = True) -> None:
         """Run the generator to fit the model for each cross-validation fold."""
         self.convert_data_to_floats()
-        for _ in self.fit_cv():
-            pass
+        if parallel:
+            with ProcessPoolExecutor() as executor:
+                models = [
+                    executor.submit(
+                        self._fit_single_fold,
+                        X,
+                        y,
+                    )
+                    for X, y, _, _ in self.X_y_generator
+                ]
+                for model in models:
+                    self.models.add_model(model.result())
+        else:
+            for _ in self.fit_cv():
+                pass
 
     @property
     def mu(self) -> pd.Series:
@@ -321,5 +361,67 @@ class BaseAnalysis(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def evaluate_new_feature(self, new_feature: str) -> pd.DataFrame:
+    def evaluate_new_feature(
+        self, new_feature: str, parallel: bool = True
+    ) -> pd.DataFrame:
         pass
+
+    def _generate_new_feature_eval(
+        self, new_features: list[str], parallel: bool = True
+    ) -> Generator[pd.DataFrame, None, None]:
+        for f in new_features:
+            yield self.evaluate_new_feature(f, parallel).iloc[0]
+
+    def evaluate_new_features(
+        self,
+        new_features: list[str] | None = None,
+        parallel: bool = True,
+        p_value_cutoff: float = 0.05,
+    ) -> pd.DataFrame:
+        if new_features is None:
+            new_features = self.remaining_features
+
+        if parallel:
+            with ProcessPoolExecutor() as executor:
+                futures = [
+                    executor.submit(self.evaluate_new_feature, f, parallel)
+                    for f in new_features
+                ]
+
+                # pre-assign arrays to hold the results
+                idx = [0] * len(futures)
+                deviance = [0.0] * len(futures)
+                dof = [0] * len(futures)
+                p_value = [0.0] * len(futures)
+
+                for i, f in enumerate(futures):
+                    idx[i] = i
+                    deviance[i], dof[i], p_value[i] = f.result().iloc[0]
+
+                n_to_remove = (
+                    pd.Series(p_value).astype(float).ge(float(p_value_cutoff)).sum()
+                )
+                if n_to_remove > 0:
+                    print(
+                        f"Feature evaluation has removed {n_to_remove} features with p-values greater than {p_value_cutoff:.1%}."
+                    )
+                output = (
+                    pd.DataFrame(
+                        {
+                            "Model": [f"[Current Model] + {f}" for f in new_features],
+                            "Deviance": deviance,
+                            "DofF": dof,
+                            "p_value": p_value,
+                        }
+                    )
+                    .sort_values(by="Deviance", ascending=True)
+                    .set_index("Model")
+                )
+                return output.loc[
+                    output["p_value"].astype(float) < float(p_value_cutoff)
+                ]
+        else:
+            return pd.concat(
+                [df for df in self._generate_new_feature_eval(new_features, parallel)],
+                axis=1,
+            ).T

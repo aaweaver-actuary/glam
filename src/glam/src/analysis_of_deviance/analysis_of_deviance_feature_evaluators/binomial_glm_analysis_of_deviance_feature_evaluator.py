@@ -21,42 +21,28 @@ class BinomialGlmAnalysisOfDevianceFeatureEvaluator(
         new_feature: str,
         deviance_calculator: StatsmodelsGlmDevianceCalculator | None = None,
         degrees_of_freedom_calculator: DegreesOfFreedomCalculator | None = None,
+        parallel: bool = True,
     ):
         super().__init__(
             current_analysis,
             new_feature,
             deviance_calculator,
             degrees_of_freedom_calculator,
+            parallel,
         )
 
     @property
     def deviance_calculator(self):
-        return (
-            self._deviance_calculator
-            if hasattr(self, "_deviance_calculator")
-            else StatsmodelsGlmDevianceCalculator
-        )
+        return self._deviance_calculator
 
     @property
     def degrees_of_freedom_calculator(self):
-        return (
-            self._degrees_of_freedom_calculator
-            if hasattr(self, "_degrees_of_freedom_calculator")
-            else DegreesOfFreedomCalculator
-        )
+        return self._degrees_of_freedom_calculator
 
     def _get_deviance(self, analysis: BaseAnalysis) -> float:
-        calculator = (
-            self.deviance_calculator(analysis)
-            if self.deviance_calculator is not None
-            else StatsmodelsGlmDevianceCalculator(analysis)
-        )
+        calculator = StatsmodelsGlmDevianceCalculator(analysis)
         return calculator.calculate()
 
     def _get_degrees_of_freedom(self, analysis: BaseAnalysis) -> float:
-        calculator = (
-            self._degrees_of_freedom_calculator(analysis)
-            if self._degrees_of_freedom_calculator is not None
-            else DegreesOfFreedomCalculator(analysis)
-        )
+        calculator = DegreesOfFreedomCalculator(analysis)
         return calculator.calculate()

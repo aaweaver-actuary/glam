@@ -10,6 +10,8 @@ from glam.src.calculators.deviance_calculators.base_deviance_calculator import (
 from glam.src.calculators.degrees_of_freedom_calculators.base_degrees_of_freedom_calculator import (
     BaseDegreesOfFreedomCalculator,
 )
+import warnings
+from statsmodels.tools.sm_exceptions import PerfectSeparationWarning
 
 
 class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
@@ -21,11 +23,13 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
         new_feature: str,
         deviance_calculator: BaseDevianceCalculator,
         degrees_of_freedom_calculator: BaseDegreesOfFreedomCalculator,
+        parallel: bool = True,
     ):
         self._current_analysis = current_analysis
         self._new_feature = new_feature
         self._deviance_calculator = deviance_calculator
         self._degrees_of_freedom_calculator = degrees_of_freedom_calculator
+        self._parallel = parallel
 
     @property
     def current_analysis(self):
@@ -34,6 +38,10 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
     @property
     def new_feature(self):
         return self._new_feature
+
+    @property
+    def parallel(self):
+        return self._parallel
 
     @abstractmethod
     def _get_deviance(self, analysis: BaseAnalysis) -> float:
@@ -44,9 +52,22 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
         pass
 
     def _get_model_with_new_feature(self, analysis: BaseAnalysis) -> BaseAnalysis:
-        new_model = analysis.copy()
+        warnings.filterwarnings(
+            "ignore", category=PerfectSeparationWarning, append=True
+        )
+        warnings.filterwarnings("ignore", category=RuntimeWarning, append=True)
+        cur_features = analysis.features
+        cur_data = analysis.data
+
+        if self.new_feature in cur_features:
+            return analysis
+
+        new_model = analysis.__class__(cur_data)
+        for f in cur_features:
+            new_model.add_feature(f)
+
         new_model.add_feature(self.new_feature)
-        new_model.fit()
+        new_model.fit(parallel=self.parallel)
         return new_model
 
     def _get_p_value(
@@ -79,7 +100,9 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
         outdf = pd.DataFrame(
             {
                 "Model": [
-                    new_model.feature_formula,
+                    new_model.feature_formula.replace(
+                        f"{self.current_analysis.feature_formula}", "[Current Model]"
+                    ),
                     self.current_analysis.feature_formula,
                 ],
                 "Deviance": [deviance_new, deviance_current],

@@ -144,6 +144,10 @@ class BinomialGlmAnalysis(BaseAnalysis):
         calculator = BinomialGlmLeverageCalculator(self.exog, self.yhat_proba())
         return calculator.calculate()
 
-    def evaluate_new_feature(self, new_feature: str) -> pd.DataFrame:
-        evaluator = BinomialGlmAnalysisOfDevianceFeatureEvaluator(self, new_feature)
+    def evaluate_new_feature(
+        self, new_feature: str, parallel: bool = True
+    ) -> pd.DataFrame:
+        evaluator = BinomialGlmAnalysisOfDevianceFeatureEvaluator(
+            self, new_feature, parallel
+        )
         return evaluator.evaluate_feature()
