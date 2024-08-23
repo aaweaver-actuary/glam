@@ -10,6 +10,8 @@ from glam.src.calculators.deviance_calculators.base_deviance_calculator import (
 from glam.src.calculators.degrees_of_freedom_calculators.base_degrees_of_freedom_calculator import (
     BaseDegreesOfFreedomCalculator,
 )
+from glam.src.calculators.aic_calculators.base_aic_calculator import BaseAicCalculator
+from glam.src.calculators.bic_calculators.base_bic_calculator import BaseBicCalculator
 import warnings
 from statsmodels.tools.sm_exceptions import PerfectSeparationWarning
 
@@ -22,12 +24,16 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
         current_analysis: BaseAnalysis,
         new_feature: str,
         deviance_calculator: BaseDevianceCalculator,
+        aic_calculator: BaseAicCalculator,
+        bic_calculator: BaseBicCalculator,
         degrees_of_freedom_calculator: BaseDegreesOfFreedomCalculator,
         parallel: bool = True,
     ):
         self._current_analysis = current_analysis
         self._new_feature = new_feature
         self._deviance_calculator = deviance_calculator
+        self._aic_calculator = aic_calculator
+        self._bic_calculator = bic_calculator
         self._degrees_of_freedom_calculator = degrees_of_freedom_calculator
         self._parallel = parallel
 
@@ -45,6 +51,14 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
 
     @abstractmethod
     def _get_deviance(self, analysis: BaseAnalysis) -> float:
+        pass
+
+    @abstractmethod
+    def _get_aic(self, analysis: BaseAnalysis) -> float:
+        pass
+
+    @abstractmethod
+    def _get_bic(self, analysis: BaseAnalysis) -> float:
         pass
 
     @abstractmethod
@@ -92,6 +106,12 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
         deviance_current = self._get_deviance(self.current_analysis)
         deviance_new = self._get_deviance(new_model)
 
+        aic_current = self._get_aic(self.current_analysis)
+        aic_new = self._get_aic(new_model)
+
+        bic_current = self._get_bic(self.current_analysis)
+        bic_new = self._get_bic(new_model)
+
         dof_current = self._get_degrees_of_freedom(self.current_analysis)
         dof_new = self._get_degrees_of_freedom(new_model)
 
@@ -106,12 +126,16 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
                     self.current_analysis.feature_formula,
                 ],
                 "Deviance": [deviance_new, deviance_current],
+                "AIC": [aic_new, aic_current],
+                "BIC": [bic_new, bic_current],
                 "DoF": [dof_new, dof_current],
                 "pval": [p_value, None],
             }
         ).set_index("Model")
 
         outdf["Deviance"] = outdf["Deviance"].round(2)
+        outdf["AIC"] = outdf["AIC"].round(2)
+        outdf["BIC"] = outdf["BIC"].round(2)
 
         def format_p_value(x):
             if x is None:

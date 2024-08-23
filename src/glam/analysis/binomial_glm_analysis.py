@@ -20,6 +20,9 @@ from glam.src.calculators.residual_calculators.binomial_glm_residual_calculator 
 from glam.src.calculators.aic_calculators.statsmodels_glm_aic_calculator import (
     StatsmodelsGlmAicCalculator,
 )
+from glam.src.calculators.bic_calculators.statsmodels_glm_bic_calculator import (
+    StatsmodelsGlmBicCalculator,
+)
 from glam.src.calculators.leverage_calculators.binomial_glm_leverage_calculator import (
     BinomialGlmLeverageCalculator,
 )
@@ -132,6 +135,11 @@ class BinomialGlmAnalysis(BaseAnalysis):
     @property
     def aic(self) -> float:
         calculator = StatsmodelsGlmAicCalculator(self.models.model)
+        return float(calculator.calculate())
+
+    @property
+    def bic(self) -> float:
+        calculator = StatsmodelsGlmBicCalculator(self.models.model)
         return float(calculator.calculate())
 
     @property

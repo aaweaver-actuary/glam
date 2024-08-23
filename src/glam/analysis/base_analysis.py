@@ -353,6 +353,10 @@ class BaseAnalysis(ABC):
         raise NotImplementedError
 
     @property
+    def bic(self) -> float:
+        raise NotImplementedError
+
+    @property
     def deviance(self) -> float:
         raise NotImplementedError
 
@@ -391,12 +395,14 @@ class BaseAnalysis(ABC):
                 # pre-assign arrays to hold the results
                 idx = [0] * len(futures)
                 deviance = [0.0] * len(futures)
+                aic = [0.0] * len(futures)
+                bic = [0.0] * len(futures)
                 dof = [0] * len(futures)
                 p_value = [0.0] * len(futures)
 
                 for i, f in enumerate(futures):
                     idx[i] = i
-                    deviance[i], dof[i], p_value[i] = f.result().iloc[0]
+                    deviance[i], aic[i], bic[i], dof[i], p_value[i] = f.result().iloc[0]
 
                 n_to_remove = (
                     pd.Series(p_value).astype(float).ge(float(p_value_cutoff)).sum()
@@ -410,11 +416,13 @@ class BaseAnalysis(ABC):
                         {
                             "Model": [f"[Current Model] + {f}" for f in new_features],
                             "Deviance": deviance,
+                            "AIC": aic,
+                            "BIC": bic,
                             "DofF": dof,
                             "p_value": p_value,
                         }
                     )
-                    .sort_values(by="Deviance", ascending=True)
+                    .sort_values(by="BIC", ascending=True)
                     .set_index("Model")
                 )
                 return output.loc[
