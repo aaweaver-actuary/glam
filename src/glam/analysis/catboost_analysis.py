@@ -1,42 +1,26 @@
 import pandas as pd
 import logging
+from concurrent.futures import ProcessPoolExecutor
+from typing import Generator
 
-from glam.analysis.base_glm_analysis import BaseGlmAnalysis
-from glam.src.calculators.deviance_calculators.statsmodels_glm_deviance_calculator import (
-    StatsmodelsGlmDevianceCalculator,
-)
+from glam.analysis.base_analysis import BaseAnalysis
 from glam.src.data.base_model_data import BaseModelData
 from glam.src.enums.model_task import ModelTask
 from glam.src.fitters.base_model_fitter import BaseModelFitter
 from glam.src.model_list.base_model_list import BaseModelList
 from glam.src.fitted_model.base_fitted_model import BaseFittedModel
 from glam.src.data.data_prep import BaseDataSplitter, BasePreprocessor
-from glam.src.fitters.statsmodels_formula_glm_fitter import StatsmodelsFormulaGlmFitter
+from glam.src.fitters.catboost_fitter import CatboostFitter
 from glam.src.model_list.default_model_list import DefaultModelList
 from glam.src.data.data_prep import TimeSeriesDataSplitter, DefaultPreprocessor
-from glam.src.calculators.residual_calculators.binomial_glm_residual_calculator import (
-    BinomialGlmResidualCalculator,
-)
-from glam.src.calculators.aic_calculators.statsmodels_glm_aic_calculator import (
-    StatsmodelsGlmAicCalculator,
-)
-from glam.src.calculators.bic_calculators.statsmodels_glm_bic_calculator import (
-    StatsmodelsGlmBicCalculator,
-)
-from glam.src.calculators.leverage_calculators.binomial_glm_leverage_calculator import (
-    BinomialGlmLeverageCalculator,
-)
-from glam.src.analysis_of_deviance.analysis_of_deviance_feature_evaluators.binomial_glm_analysis_of_deviance_feature_evaluator import (
-    BinomialGlmAnalysisOfDevianceFeatureEvaluator,
-)
 
-__all__ = ["BinomialGlmAnalysis"]
+__all__ = ["CatboostGbmAnalysis"]
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class BinomialGlmAnalysis(BaseGlmAnalysis):
+class CatboostGbmAnalysis(BaseAnalysis):
     def __init__(
         self,
         data: BaseModelData,
@@ -62,7 +46,7 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
         )
 
         self._data = data
-        self._fitter = fitter if fitter is not None else StatsmodelsFormulaGlmFitter()
+        self._fitter = fitter if fitter is not None else CatboostFitter()
         self._models = models if models is not None else DefaultModelList()
         self._fitted_model = fitted_model
         self._features = features if features is not None else []
@@ -79,9 +63,9 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
 
     def __repr__(self):
         if len(self.features) > 0:
-            return f"BinaryGlmAnalysis({self.linear_formula})"
+            return f"CatboostGbmAnalysis({self.linear_formula})"
 
-        return f"BinaryGlmAnalysis({self.data.y.name} ~ 1)"
+        return f"CatboostGbmAnalysis({self.data.y.name} ~ 1)"
 
     @property
     def mu(self) -> pd.Series:
@@ -107,55 +91,61 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
 
     @property
     def coefficients(self) -> pd.Series:
-        return self.models.model.params
+        return self.models.model.coefficients
 
     @property
     def endog(self) -> pd.Series:
         return (
-            pd.Series(self.models.model.model.data.endog, name="endog")
-            .round(0)
-            .astype(int)
+            pd.Series(self.models.model.model.data.y, name="endog").round(0).astype(int)
         )
 
     @property
     def exog(self) -> pd.DataFrame:
         return pd.DataFrame(
-            self.models.model.model.data.exog, columns=["Intercept"] + self.features
+            self.models.model.model.data.X, columns=["Intercept"] + self.features
         )
 
-    @property
-    def residual_calculator(self) -> BinomialGlmResidualCalculator:
-        if self.models.model is None:
-            self.fit()
+    def _fit_single_fold(
+        self,
+        X_train: pd.DataFrame,
+        y_train: pd.Series,
+        X_test: pd.DataFrame,
+        y_test: pd.Series,
+    ) -> BaseFittedModel:
+        return self.fitter.fit(X_train, y_train, X_test, y_test)
 
-        return BinomialGlmResidualCalculator(
-            self.exog, self.endog, self.yhat_proba(), self.coefficients
-        )
+    def fit_cv(self) -> Generator[BaseModelList, None, None]:
+        """Fit/refit the model for each cross-validation fold using the current set of features."""
+        for X_train, y_train, X_test, y_test in self.X_y_generator:
+            model = self._fit_single_fold(X_train, y_train, X_test, y_test)
+            self.models.add_model(model)
+            yield self.models
 
-    @property
-    def aic(self) -> float:
-        calculator = StatsmodelsGlmAicCalculator(self.models.model)
-        return float(calculator.calculate())
-
-    @property
-    def bic(self) -> float:
-        calculator = StatsmodelsGlmBicCalculator(self.models.model)
-        return float(calculator.calculate())
-
-    @property
-    def deviance(self) -> float:
-        calculator = StatsmodelsGlmDevianceCalculator(self.models.model)
-        return float(calculator.calculate())
-
-    @property
-    def leverage(self) -> pd.Series:
-        calculator = BinomialGlmLeverageCalculator(self.exog, self.yhat_proba())
-        return calculator.calculate()
+    def fit(self, parallel: bool = True) -> None:
+        """Run the generator to fit the model for each cross-validation fold."""
+        self.convert_data_to_floats()
+        if parallel:
+            with ProcessPoolExecutor() as executor:
+                models = [
+                    executor.submit(
+                        self._fit_single_fold,
+                        X_train,
+                        y_train,
+                        X_test,
+                        y_test,
+                    )
+                    for X_train, y_train, X_test, y_test in self.X_y_generator
+                ]
+                for model in models:
+                    self.models.add_model(model.result())
+        else:
+            for _ in self.fit_cv():
+                pass
 
     def evaluate_new_feature(
         self, new_feature: str, parallel: bool = True
     ) -> pd.DataFrame:
-        evaluator = BinomialGlmAnalysisOfDevianceFeatureEvaluator(
-            self, new_feature, parallel
-        )
-        return evaluator.evaluate_feature()
+        pass
+
+    def evaluate_new_features(self) -> pd.DataFrame:
+        pass

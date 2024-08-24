@@ -224,15 +224,12 @@ class BaseAnalysis(ABC):
             if ((self.data.df[f].dtype == float) or (self.data.df[f].dtype == int))
         ]
 
-    @property
-    def feature_formula(self) -> str:
-        """Return the formula for the model."""
-        return " + ".join(self.features)
-
-    @property
-    def linear_formula(self) -> str:
-        """Return the linear formula for the model."""
-        return f"{self.data.y.name} ~ {self.feature_formula}"
+    @abstractmethod
+    def _fit_single_fold(
+        self, X_train: pd.DataFrame, y_train: pd.Series
+    ) -> BaseFittedModel:
+        """Fits a single model for a cross-validation fold."""
+        pass
 
     def convert_1_0_integers(self, x: pd.Series, offset: float = 1e-8) -> pd.DataFrame:
         """Convert the response variable to be 1s and 0s."""
@@ -258,18 +255,6 @@ class BaseAnalysis(ABC):
     def convert_data_to_floats(self) -> None:
         for col in self.features:
             self.data.df[col] = self.convert_1_0_integers(self.data.df[col])
-
-    def _fit_single_fold(
-        self, X_train: pd.DataFrame, y_train: pd.Series, i: int | None = None
-    ) -> BaseFittedModel:
-        """Fits a single model for a cross-validation fold."""
-        return self.fitter.fit(self.linear_formula, X_train, y_train)
-        # if i is not None:
-        #     print(f"Fitting model for fold {i}")
-        # model = self.fitter.fit(self.linear_formula, X_train, y_train)
-        # if i is not None:
-        #     print(f"Completed model for fold {i}")
-        # return model
 
     def fit_cv(self) -> Generator[BaseModelList, None, None]:
         """Fit/refit the model for each cross-validation fold using the current set of features."""
@@ -313,55 +298,7 @@ class BaseAnalysis(ABC):
         pass
 
     @property
-    def summary(self):
-        """Return the summary of the model."""
-        raise NotImplementedError
-
-    @property
-    def coefficients(self) -> pd.Series:
-        raise NotImplementedError
-
-    @property
-    def endog(self) -> pd.Series:
-        raise NotImplementedError
-
-    @property
-    def exog(self) -> pd.DataFrame:
-        raise NotImplementedError
-
-    @property
     def residual_calculator(self) -> BaseResidualCalculator:
-        raise NotImplementedError
-
-    @property
-    def deviance_residuals(self) -> pd.Series:
-        return self.residual_calculator.deviance_residuals()
-
-    @property
-    def pearson_residuals(self) -> pd.Series:
-        return self.residual_calculator.pearson_residuals(std=False)
-
-    @property
-    def std_pearson_residuals(self) -> pd.Series:
-        return self.residual_calculator.pearson_residuals(std=True)
-
-    def partial_residuals(self, feature: str) -> pd.Series:
-        return self.residual_calculator.partial_residuals(feature)
-
-    @property
-    def aic(self) -> float:
-        raise NotImplementedError
-
-    @property
-    def bic(self) -> float:
-        raise NotImplementedError
-
-    @property
-    def deviance(self) -> float:
-        raise NotImplementedError
-
-    @property
-    def leverage(self) -> pd.Series:
         raise NotImplementedError
 
     @abstractmethod
@@ -376,60 +313,6 @@ class BaseAnalysis(ABC):
         for f in new_features:
             yield self.evaluate_new_feature(f, parallel).iloc[0]
 
-    def evaluate_new_features(
-        self,
-        new_features: list[str] | None = None,
-        parallel: bool = True,
-        p_value_cutoff: float = 0.05,
-    ) -> pd.DataFrame:
-        if new_features is None:
-            new_features = self.remaining_features
-
-        if parallel:
-            with ProcessPoolExecutor() as executor:
-                futures = [
-                    executor.submit(self.evaluate_new_feature, f, parallel)
-                    for f in new_features
-                ]
-
-                # pre-assign arrays to hold the results
-                idx = [0] * len(futures)
-                deviance = [0.0] * len(futures)
-                aic = [0.0] * len(futures)
-                bic = [0.0] * len(futures)
-                dof = [0] * len(futures)
-                p_value = [0.0] * len(futures)
-
-                for i, f in enumerate(futures):
-                    idx[i] = i
-                    deviance[i], aic[i], bic[i], dof[i], p_value[i] = f.result().iloc[0]
-
-                n_to_remove = (
-                    pd.Series(p_value).astype(float).ge(float(p_value_cutoff)).sum()
-                )
-                if n_to_remove > 0:
-                    print(
-                        f"Feature evaluation has removed {n_to_remove} features with p-values greater than {p_value_cutoff:.1%}."
-                    )
-                output = (
-                    pd.DataFrame(
-                        {
-                            "Model": [f"[Current Model] + {f}" for f in new_features],
-                            "Deviance": deviance,
-                            "AIC": aic,
-                            "BIC": bic,
-                            "DofF": dof,
-                            "p_value": p_value,
-                        }
-                    )
-                    .sort_values(by="BIC", ascending=True)
-                    .set_index("Model")
-                )
-                return output.loc[
-                    output["p_value"].astype(float) < float(p_value_cutoff)
-                ]
-        else:
-            return pd.concat(
-                [df for df in self._generate_new_feature_eval(new_features, parallel)],
-                axis=1,
-            ).T
+    @abstractmethod
+    def evaluate_new_features(self) -> pd.DataFrame:
+        pass

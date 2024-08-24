@@ -8,3 +8,4 @@ class ModelType(StrEnum):
     GEE = "gee"
     GLMM = "glmm"
     GAM = "gam"
+    CATBOOST = "catboost"

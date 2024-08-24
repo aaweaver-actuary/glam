@@ -11,6 +11,8 @@ dependencies = [
     "pandas>=2.0.0",
     "plotly>=5.0.0",
     "statsmodels>=0.13.0",
+    "catboost==1.2",
+    "numpy==1.23.5",
     "scikit-learn>=1.2.0",
     "pyarrow>=11.0.0",
     "matplotlib>=3.0.0",
