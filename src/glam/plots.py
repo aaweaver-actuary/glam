@@ -9,6 +9,24 @@ from glam.src.fitted_model.base_fitted_model import BaseFittedModel
 
 from dataclasses import dataclass
 
+__all__ = [
+    "BasePlotConfig",
+    "CurrentModelConfig",
+    "TestModelConfig",
+    "ActualConfig",
+    "CountConfig",
+    "get_configs",
+    "create_plot",
+    "create_ave_by_level_data",
+    "create_test_model",
+    "create_pre_binning_data",
+    "numeric_plot",
+    "categorical_plot",
+    "_add_bar",
+    "_add_scatter",
+    "_update_layout",
+]
+
 
 @dataclass
 class BasePlotConfig:
@@ -152,7 +170,7 @@ def _update_layout(
 
 def create_plot(df: pd.DataFrame, feature_name: str) -> go.Figure:
     """Create a plot based on the feature type."""
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = make_subplots(rows=1, cols=1, specs=[[{"secondary_y": True}]])
 
     fig = _add_bar(fig, df[feature_name], df["count"], CountConfig())
     fig = _add_scatter(fig, df[feature_name], df["hit_count"], ActualConfig())

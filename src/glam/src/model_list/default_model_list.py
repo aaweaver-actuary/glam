@@ -1,3 +1,6 @@
+"""Implement the DefaultModelList class."""
+
+from __future__ import annotations
 from glam.src.fitted_model.base_fitted_model import BaseFittedModel
 from typing import Generator
 
@@ -37,14 +40,21 @@ class DefaultModelList:
     def __init__(self, models: list[BaseFittedModel] | None = None):
         self._models = models if models is not None else []
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # noqa: D105
         return f"DefaultModelList(n_models={len(self.models)})"
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # noqa: D105
         return self.__repr__()
 
     @property
     def models(self) -> list[BaseFittedModel]:
+        """Return the list of models.
+
+        Returns
+        -------
+        list[BaseFittedModel]
+            A list of BaseFittedModel objects.
+        """
         return self._models
 
     @models.setter
@@ -72,7 +82,7 @@ class DefaultModelList:
         dict[int, BaseFittedModel]
             A dictionary of model indices to models.
         """
-        return {index: model for index, model in enumerate(self.models)}
+        return dict(enumerate(self.models))
 
     @property
     def model(self) -> BaseFittedModel:
@@ -88,7 +98,7 @@ class DefaultModelList:
             The model to add to the list of models.
         """
         current_models = self.models
-        new_models = current_models + [model]
+        new_models = [*current_models, model]
         self._models = new_models
 
     def reset_models(self) -> None:
