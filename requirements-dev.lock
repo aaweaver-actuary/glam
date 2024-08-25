@@ -98,6 +98,8 @@ idna==3.7
     # via requests
 importlib-metadata==8.4.0
     # via keyring
+iniconfig==2.0.0
+    # via pytest
 ipykernel==6.29.5
     # via jupyter
     # via jupyter-console
@@ -240,6 +242,7 @@ packaging==24.1
     # via matplotlib
     # via nbconvert
     # via plotly
+    # via pytest
     # via qtconsole
     # via qtpy
     # via statsmodels
@@ -269,6 +272,7 @@ plotly==5.23.0
     # via glam
 pluggy==1.5.0
     # via hatchling
+    # via pytest
 polars==1.5.0
     # via glam
 prometheus-client==0.20.0
@@ -295,6 +299,7 @@ pygments==2.18.0
     # via rich
 pyparsing==3.1.2
     # via matplotlib
+pytest==8.3.2
 python-dateutil==2.9.0.post0
     # via arrow
     # via jupyter-client
@@ -333,6 +338,7 @@ rich==13.7.1
 rpds-py==0.20.0
     # via jsonschema
     # via referencing
+ruff==0.6.2
 scikit-learn==1.5.1
     # via glam
 scipy==1.14.0

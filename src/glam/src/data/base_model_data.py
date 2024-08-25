@@ -1,5 +1,6 @@
 """Define the BaseData protocol, which is the minimal interface needed to load and prepare data in the GLAM framework."""
 
+from __future__ import annotations
 from typing import Protocol
 import pandas as pd
 
@@ -7,7 +8,7 @@ __all__ = ["BaseModelData"]
 
 
 class BaseModelData(Protocol):
-    """This class provides an interface for the GLM data functionality we need, no matter the underlying library."""
+    """Class providing an interface for the GLM data functionality we need, no matter the underlying library."""
 
     @property
     def df(self) -> pd.DataFrame:
@@ -33,7 +34,8 @@ class BaseModelData(Protocol):
     def cv(self) -> pd.Series:
         """Return the cross-validation fold assignments.
 
-        Training folds are typically labeled with non-negative integers, while validation and testing folds are labeled with 'val' and 'test', respectively."""
+        Training folds are typically labeled with non-negative integers, while validation and testing folds are labeled with 'val' and 'test', respectively.
+        """
         ...
 
     @property
@@ -44,5 +46,6 @@ class BaseModelData(Protocol):
     def add_feature(self, name: str, values: pd.Series) -> None:
         """Add a new feature to the data.
 
-        Used (for example) when creating dummy variables, interaction terms, or polynomial features."""
+        Used (for example) when creating dummy variables, interaction terms, or polynomial features.
+        """
         ...

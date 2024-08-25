@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.9, pytest-8.3.2, pluggy-1.5.0
+rootdir: /home/andy/glam
+configfile: pyproject.toml
+plugins: anyio-4.4.0
+collected 18 items / 11 deselected / 7 selected
+
+src/glam/src/data/test/test_time_series_data_splitter.py .......         [100%]
+
+======================= 7 passed, 11 deselected in 1.61s =======================

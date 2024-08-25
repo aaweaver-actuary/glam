@@ -1,3 +1,5 @@
+"""Module that provides the base preprocessor class."""
+
 from __future__ import annotations
 import pandas as pd
 from typing import Protocol
