@@ -1,3 +1,5 @@
+"""Concrete implementation of the GLM result functionality using the statsmodels library."""
+from __future__ import annotations
 import pandas as pd
 from statsmodels.genmod.generalized_linear_model import (
     GLMResults as StatsmodelsGLMResults,
@@ -59,9 +61,11 @@ class StatsmodelsFittedGlm:
         self._model_type = ModelType.GLM
 
     def __repr__(self) -> str:
+        """Return a string representation of the object."""
         return f"{self.__class__.__name__}(model_type={self.model_type}, fitted={self.is_fitted})"
 
     def __str__(self) -> str:
+        """Return a string representation of the object."""
         return self.__repr__()
 
     @property
@@ -83,13 +87,13 @@ class StatsmodelsFittedGlm:
     def model_type(self) -> ModelType:
         """Return the type of the model.
 
-        See the `ModelType` enum for possible values."""
+        See the `ModelType` enum for possible values.
+        """
         return self._model_type
 
     @property
     def coefficients(self) -> dict[str, float]:
         """Return the coefficients of the model besides the intercept (if present) in a dictionary."""
-
         params = self.model.params[self.model.params.index.to_series().ne("Intercept")]
         return dict(zip(params.index, params))
 
@@ -107,7 +111,8 @@ class StatsmodelsFittedGlm:
     def mu(self) -> pd.Series:
         """Return the expected value of the response variable.
 
-        For a binary classification model, this is the probability of the positive class."""
+        For a binary classification model, this is the probability of the positive class.
+        """
         return pd.Series(self.model.mu, name="mu")
 
     @property

@@ -1,3 +1,6 @@
+"""Defines the BaseDataSplitter protocol for splitting data."""
+
+from __future__ import annotations
 import pandas as pd
 from typing import Protocol, Generator
 
