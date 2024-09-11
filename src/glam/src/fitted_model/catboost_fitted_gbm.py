@@ -1,4 +1,6 @@
-from catboost import CatBoostClassifier, CatBoostRegressor
+from __future__ import annotations
+
+# from catboost import CatBoostClassifier, CatBoostRegressor
 import pandas as pd
 from glam.src.data.base_model_data import BaseModelData
 from glam.src.enums import ModelType

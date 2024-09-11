@@ -1,47 +1,45 @@
-"""This module provides an interface and implementation for a GLM model."""
+"""An interface and implementation for a GLM model."""
 
-import copy
 from typing import Generator, Protocol
 
-import numpy as np
-import pandas as pd
-
-# from hit_ratio.old_glm.model_data import BaseModelData
-from glam.src.data import BaseModelData
-from hit_ratio.old_glm.model_fitter import (
-    BaseModelFitter,
-    StatsmodelsFormulaGlmFitter,
-)
-from hit_ratio.old_glm.model_list import BaseModelList, DefaultModelList
-from hit_ratio.old_glm.model_result import BaseModelResult, StatsmodelsGlmResult
-from hit_ratio.old_glm.splitter import BaseDataSplitter, TimeSeriesDataSplitter
-from hit_ratio.old_glm.preprocessor import BasePreprocessor, DefaultPreprocessor
-
 import logging
+from glam.src.data import BaseModelData
+from glam.src.fitters import (
+    BaseModelFitter,
+)
 
 logger = logging.getLogger(__name__)
-file_handler = logging.FileHandler("model_analysis__package.log", mode="w")
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
 
 
 class BaseModelAnalysis(Protocol):
-    @property
-    def data(self) -> BaseModelData: ...
+    """Interface for a GLM model."""
 
     @property
-    def fitter(self) -> BaseModelFitter: ...
+    def data(self) -> BaseModelData:
+        """Return the data object."""
+        ...
 
     @property
-    def splitter(self) -> BaseDataSplitter: ...
+    def fitter(self) -> BaseModelFitter:
+        """Return the model fitter."""
+        ...
 
     @property
-    def preprocessor(self) -> BasePreprocessor: ...
+    def splitter(self) -> BaseDataSplitter:
+        """Return the data splitter."""
+        ...
 
     @property
-    def models(self) -> BaseModelList: ...
+    def preprocessor(self) -> BasePreprocessor:
+        """Return the preprocessor."""
+        ...
+
+    @property
+    def models(self) -> BaseModelList:
+        """Return the models."""
+        ...
 
     @property
     def features(self) -> list[str]: ...

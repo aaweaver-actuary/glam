@@ -33,8 +33,6 @@ beautifulsoup4==4.12.3
     # via nbconvert
 bleach==6.1.0
     # via nbconvert
-catboost==1.2
-    # via glam
 certifi==2024.7.4
     # via httpcore
     # via httpx
@@ -52,6 +50,7 @@ comm==0.2.2
     # via ipywidgets
 contourpy==1.2.1
     # via matplotlib
+coverage==7.6.1
 cryptography==43.0.0
     # via secretstorage
 cycler==0.12.1
@@ -76,8 +75,6 @@ fonttools==4.53.1
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
-graphviz==0.20.3
-    # via catboost
 h11==0.14.0
     # via httpcore
 hatch==1.12.0
@@ -191,7 +188,6 @@ markupsafe==2.1.5
     # via jinja2
     # via nbconvert
 matplotlib==3.9.2
-    # via catboost
     # via glam
 matplotlib-inline==0.1.7
     # via ipykernel
@@ -219,10 +215,8 @@ notebook==7.2.1
 notebook-shim==0.2.4
     # via jupyterlab
     # via notebook
-numpy==1.23.5
-    # via catboost
+numpy==2.1.1
     # via contourpy
-    # via glam
     # via matplotlib
     # via pandas
     # via patsy
@@ -247,7 +241,6 @@ packaging==24.1
     # via qtpy
     # via statsmodels
 pandas==2.2.2
-    # via catboost
     # via glam
     # via statsmodels
 pandocfilters==1.5.1
@@ -268,12 +261,11 @@ platformdirs==4.2.2
     # via jupyter-core
     # via virtualenv
 plotly==5.23.0
-    # via catboost
     # via glam
 pluggy==1.5.0
     # via hatchling
     # via pytest
-polars==1.5.0
+polars==1.6.0
     # via glam
 prometheus-client==0.20.0
     # via jupyter-server
@@ -342,7 +334,6 @@ ruff==0.6.2
 scikit-learn==1.5.1
     # via glam
 scipy==1.14.0
-    # via catboost
     # via glam
     # via scikit-learn
     # via statsmodels
@@ -357,7 +348,6 @@ shellingham==1.5.4
 six==1.16.0
     # via asttokens
     # via bleach
-    # via catboost
     # via patsy
     # via python-dateutil
     # via rfc3339-validator

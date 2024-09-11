@@ -1,3 +1,6 @@
+"""Find the next variable to add to the model using a forward selection strategy."""
+
+from __future__ import annotations
 import logging
 
 import numpy as np
@@ -29,7 +32,7 @@ def find_next_variable(glm: BaseModelAnalysis) -> str:
         f"Remaining features ({len(remaining_features)}): {remaining_features}"
     )
 
-    def mean_std(values):
+    def mean_std(values: list[float] ) -> tuple[float, float]:
         return np.mean(values), np.std(values)
 
     def evaluate_feature(
@@ -67,7 +70,7 @@ def find_next_variable(glm: BaseModelAnalysis) -> str:
                 deviance,
             )
         except Exception as e:
-            print(f"Error evaluating feature {f}: {e}")
+            logger.error(f"Error evaluating feature {f}: {e}")
             return (
                 (0, 0),
                 (0, 0),
@@ -78,9 +81,7 @@ def find_next_variable(glm: BaseModelAnalysis) -> str:
                 0,
             )
 
-    results = []
-    for f in tqdm(remaining_features):
-        results.append(evaluate_feature(glm, f))
+    results = [evaluate_feature(glm, f) for f in tqdm(remaining_features)]
 
     output_df = (
         pd.DataFrame(

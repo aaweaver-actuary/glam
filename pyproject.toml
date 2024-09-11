@@ -1,22 +1,20 @@
 [project]
 name = "glam"
-version = "0.1.3"
+version = "0.1.4"
 description = "Generalized Linear/Additive Modeling"
 authors = [
     { name = "Andy Weaver", email = "andrewayersweaver+github@gmail.com" }
 ]
 dependencies = [
     "duckdb>=0.9",
-    "polars>=0.20.0",
-    "pandas>=2.0.0",
     "plotly>=5.0.0",
     "statsmodels>=0.13.0",
-    "catboost==1.2",
-    "numpy==1.23.5",
     "scikit-learn>=1.2.0",
     "pyarrow>=11.0.0",
     "matplotlib>=3.0.0",
     "scipy>=1.0.0",
+    "polars>=1.6.0",
+    "pandas>=2.2.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -36,6 +34,7 @@ dev-dependencies = [
     "hatch>=1.12.0",
     "ruff>=0.6.2",
     "pytest>=8.3.2",
+    "coverage>=7.6.1",
 ]
 
 [tool.hatch.metadata]

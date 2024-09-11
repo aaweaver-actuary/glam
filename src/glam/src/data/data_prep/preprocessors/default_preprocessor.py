@@ -56,6 +56,7 @@ class DefaultPreprocessor:
             The new BaseModelData object.
         """
         self._data = new_data
+        self._imputer = self._get_missing_value_imputer(new_data.df)
 
     @property
     def df(self) -> pd.DataFrame:
@@ -107,6 +108,10 @@ class DefaultPreprocessor:
         imputer = {}
         for col in df.columns:
             if df[col].dtype in ["object", "category"]:
+                # If all values are missing, use None
+                if df[col].dropna().shape[0] == 0:
+                    imputer[col] = None
+                    continue
                 try:
                     imputer[col] = df[col].dropna().mode()[0]
                 except IndexError:
@@ -132,6 +137,16 @@ class DefaultPreprocessor:
         Replaces missing values with the imputer value.
         """
         df = self.df
+
+        # Don't do anything if there are no missing values
+        if df.isna().sum().sum() == 0:
+            return
+
+        # Don't do anything if there are only missing values (no way to impute)
+        if df.isna().all().all():
+            return
+
+        # Otherwise, impute missing values with the dictionary of imputer values
         for col in self.df.columns:
             df.loc[:, col] = self.df[col].fillna(self.imputer[col])
         self.data.df = df

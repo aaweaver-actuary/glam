@@ -9,8 +9,6 @@
 #   generate-hashes: false
 
 -e file:.
-catboost==1.2
-    # via glam
 contourpy==1.2.1
     # via matplotlib
 cycler==0.12.1
@@ -19,19 +17,14 @@ duckdb==1.0.0
     # via glam
 fonttools==4.53.1
     # via matplotlib
-graphviz==0.20.3
-    # via catboost
 joblib==1.4.2
     # via scikit-learn
 kiwisolver==1.4.5
     # via matplotlib
 matplotlib==3.9.2
-    # via catboost
     # via glam
-numpy==1.23.5
-    # via catboost
+numpy==2.1.1
     # via contourpy
-    # via glam
     # via matplotlib
     # via pandas
     # via patsy
@@ -44,7 +37,6 @@ packaging==24.1
     # via plotly
     # via statsmodels
 pandas==2.2.2
-    # via catboost
     # via glam
     # via statsmodels
 patsy==0.5.6
@@ -52,9 +44,8 @@ patsy==0.5.6
 pillow==10.4.0
     # via matplotlib
 plotly==5.23.0
-    # via catboost
     # via glam
-polars==1.5.0
+polars==1.6.0
     # via glam
 pyarrow==17.0.0
     # via glam
@@ -68,12 +59,10 @@ pytz==2024.1
 scikit-learn==1.5.1
     # via glam
 scipy==1.14.0
-    # via catboost
     # via glam
     # via scikit-learn
     # via statsmodels
 six==1.16.0
-    # via catboost
     # via patsy
     # via python-dateutil
 statsmodels==0.14.2

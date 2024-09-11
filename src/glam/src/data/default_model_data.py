@@ -1,6 +1,7 @@
 """Module providing the DefaultModelData class for handling model data using pandas."""
 
 from __future__ import annotations
+import polars as pl
 import pandas as pd
 
 __all__ = ["DefaultModelData"]
@@ -17,8 +18,22 @@ class DefaultModelData:
         unanalyzed: str | list[str] | None = None,
         is_time_series_cv: bool = True,
     ):
-        self._df = df
+        # Raise an error if the DataFrame is empty
+        if df.shape[0] == 0:
+            raise ValueError("DataFrame cannot be empty.")
+
+        # Data are stored as polars LazyFrames and only materialized when needed
+        self._df = pl.from_pandas(df).lazy()
+
+        if (y not in df.columns.tolist()) and ("target" not in df.columns.tolist()):
+            raise KeyError(f"Response variable '{y}' not found in the DataFrame.")
         self._y = y if y is not None else df.columns.tolist()[-1]
+
+        if (cv not in df.columns.tolist()) and ("fold" not in df.columns.tolist()):
+            raise KeyError(
+                f"Cross-validation fold column '{cv}' not found in the DataFrame."
+            )
+
         self._cv = cv if cv is not None else "fold"
         self._unanalyzed = unanalyzed if unanalyzed is not None else []
         self._is_time_series_cv = is_time_series_cv
@@ -31,7 +46,7 @@ class DefaultModelData:
         str
             String representation of the DefaultModelData object.
         """
-        return f"DefaultModelData(y='{self._y}', cv='{self._cv}', df.shape={self._df.shape})"
+        return f"ModelData(y='{self._y}', cv='{self._cv}', df.shape={self._df.collect().shape})"
 
     def __str__(self) -> str:
         """Return a string representation of the object."""
@@ -40,7 +55,7 @@ class DefaultModelData:
     @property
     def df(self) -> pd.DataFrame:
         """Return the data frame."""
-        return self._df
+        return self._df.collect().to_pandas()
 
     @df.setter
     def df(self, df: pd.DataFrame) -> None:
@@ -51,17 +66,29 @@ class DefaultModelData:
         df : pd.DataFrame
             The new data frame.
         """
-        self._df = df
+        self._df = pl.from_pandas(df).lazy()
+
+    @property
+    def df_cols(self) -> list[str]:
+        """Return the columns of the data frame."""
+        return self._df.collect_schema().names()
 
     @property
     def X(self) -> pd.DataFrame:
         """Return the feature matrix."""
-        return self._df.drop(columns=[self._y, self._cv, *self._unanalyzed])
+        return (
+            self._df.drop([self._y, self._cv, *self._unanalyzed]).collect().to_pandas()
+        )
 
     @property
     def y(self) -> pd.Series:
         """Return the response variable."""
-        return self.df[self._y]
+        if self._y in self._unanalyzed:
+            raise ValueError(
+                f"Response variable '{self._y}' is in the unanalyzed features."
+            )
+
+        return self._df.select([self._y]).collect().to_pandas()[self._y]
 
     @property
     def feature_names(self) -> list[str]:
@@ -71,7 +98,7 @@ class DefaultModelData:
     @property
     def cv(self) -> pd.Series:
         """Return the cross-validation fold."""
-        return self._df[self._cv]
+        return self._df.select([self._cv]).collect().to_pandas()[self._cv]
 
     @property
     def unanalyzed(self) -> list[str]:
@@ -108,4 +135,12 @@ class DefaultModelData:
         -------
         None
         """
-        self.df = pd.concat([self._df, pd.Series(values, name=name)], axis=1)
+        if name in self.df_cols:
+            raise ValueError(f"Feature '{name}' already exists in the DataFrame")
+
+        if len(values) != self.df.shape[0]:
+            raise ValueError(
+                f"Length of new feature '{name}' ({len(values)}) does not match the number of rows in the DataFrame ({self.df.shape[0]})"
+            )
+
+        self.df = pd.concat([self.df, pd.Series(values, name=name)], axis=1)
