@@ -41,4 +41,4 @@ dev-dependencies = [
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/glam"]
+packages = ["src/glam", "src/glam/glam_plots"]
