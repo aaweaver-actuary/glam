@@ -19,6 +19,8 @@ __all__ = ["BaseAnalysis"]
 
 
 class BaseAnalysis(ABC):
+    """Define the base class for analyses."""
+
     def __init__(
         self,
         data: BaseModelData,
@@ -43,12 +45,15 @@ class BaseAnalysis(ABC):
 
     @abstractmethod
     def __repr__(self):
+        """Return the string representation of the class."""
         pass
 
     def __str__(self):
+        """Return the string representation of the class."""
         return self.__repr__()
 
     def copy(self):
+        ""
         return copy.deepcopy(self)
 
     @classmethod
@@ -287,15 +292,14 @@ class BaseAnalysis(ABC):
     @abstractmethod
     def yhat(self, X: pd.DataFrame | None = None) -> pd.Series:
         """Return the predicted class."""
-        pass
 
     @abstractmethod
     def yhat_proba(self, X: pd.DataFrame | None = None) -> pd.Series:
         """Return the predicted probability of the positive class."""
-        pass
 
     @property
     def residual_calculator(self) -> BaseResidualCalculator:
+        """Return the residual calculator object."""
         raise NotImplementedError
 
     @abstractmethod

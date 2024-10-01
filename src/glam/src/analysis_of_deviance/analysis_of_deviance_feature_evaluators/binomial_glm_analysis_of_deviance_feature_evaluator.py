@@ -1,3 +1,6 @@
+"""Define the BinomialGlmAnalysisOfDevianceFeatureEvaluator class."""
+
+from __future__ import annotations
 from glam.analysis.base_analysis import BaseAnalysis
 from glam.src.calculators.deviance_calculators.statsmodels_glm_deviance_calculator import (
     StatsmodelsGlmDevianceCalculator,
@@ -29,7 +32,7 @@ class BinomialGlmAnalysisOfDevianceFeatureEvaluator(
         aic_calculator: StatsmodelsGlmAicCalculator | None = None,
         bic_calculator: StatsmodelsGlmBicCalculator | None = None,
         degrees_of_freedom_calculator: DegreesOfFreedomCalculator | None = None,
-        parallel: bool = True,
+        parallel: bool = False,
     ):
         super().__init__(
             current_analysis,
@@ -42,11 +45,13 @@ class BinomialGlmAnalysisOfDevianceFeatureEvaluator(
         )
 
     @property
-    def deviance_calculator(self):
+    def deviance_calculator(self) -> StatsmodelsGlmDevianceCalculator:
+        """Return the deviance calculator."""
         return self._deviance_calculator
 
     @property
-    def aic_calculator(self):
+    def aic_calculator(self) -> StatsmodelsGlmAicCalculator:
+        """Return the AIC calculator."""
         return self._aic_calculator
 
     @property
