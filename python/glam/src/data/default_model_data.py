@@ -3,6 +3,7 @@
 from __future__ import annotations
 import polars as pl
 import pandas as pd
+import numpy as np
 
 __all__ = ["DefaultModelData"]
 
@@ -12,24 +13,39 @@ class DefaultModelData:
 
     def __init__(
         self,
-        df: pd.DataFrame,
+        df: pd.DataFrame | pl.DataFrame | pl.LazyFrame,
         y: str | None = None,
         cv: str | None = None,
         unanalyzed: str | list[str] | None = None,
         is_time_series_cv: bool = True,
     ):
+        # Convert the DataFrame to a polars LazyFrame
+        if isinstance(df, pd.DataFrame):
+            lf = pl.from_pandas(df).lazy()
+        elif isinstance(df, pl.DataFrame):
+            lf = df.lazy()
+        elif isinstance(df, pl.LazyFrame):
+            lf = df
+        else:
+            raise ValueError(
+                "DataFrame must be a pandas DataFrame or a polars DataFrame/LazyFrame."
+            )
         # Raise an error if the DataFrame is empty
-        if df.shape[0] == 0:
+        if lf.collect().shape[0] == 0:
             raise ValueError("DataFrame cannot be empty.")
 
         # Data are stored as polars LazyFrames and only materialized when needed
-        self._df = pl.from_pandas(df).lazy()
+        self._df = lf
 
-        if (y not in df.columns.tolist()) and ("target" not in df.columns.tolist()):
+        if (y not in lf.collect_schema().names()) and (
+            "target" not in lf.collect_schema().names()
+        ):
             raise KeyError(f"Response variable '{y}' not found in the DataFrame.")
-        self._y = y if y is not None else df.columns.tolist()[-1]
+        self._y = y if y is not None else lf.collect_schema().names()[-1]
 
-        if (cv not in df.columns.tolist()) and ("fold" not in df.columns.tolist()):
+        if (cv not in lf.collect_schema().names()) and (
+            "fold" not in lf.collect_schema().names()
+        ):
             raise KeyError(
                 f"Cross-validation fold column '{cv}' not found in the DataFrame."
             )
@@ -37,6 +53,7 @@ class DefaultModelData:
         self._cv = cv if cv is not None else "fold"
         self._unanalyzed = unanalyzed if unanalyzed is not None else []
         self._is_time_series_cv = is_time_series_cv
+        self._shape = lf.collect().shape
 
     def __repr__(self) -> str:
         """Return a string representation of the DefaultModelData object.
@@ -46,11 +63,32 @@ class DefaultModelData:
         str
             String representation of the DefaultModelData object.
         """
-        return f"ModelData(y='{self._y}', cv='{self._cv}', df.shape={self._df.collect().shape})"
+        return f"ModelData(y='{self._y}', cv='{self._cv}', shape={self.shape})"
 
     def __str__(self) -> str:
         """Return a string representation of the object."""
         return self.__repr__()
+
+    @property
+    def shape(self) -> tuple[int, int]:
+        """Return the shape of the data frame."""
+        return self._shape
+
+    @property
+    def lf(self) -> pl.LazyFrame:
+        """Return the polars LazyFrame."""
+        return self._df
+
+    @lf.setter
+    def lf(self, lf: pl.LazyFrame) -> None:
+        """Set the polars LazyFrame.
+
+        Parameters
+        ----------
+        lf : pl.LazyFrame
+            The new polars LazyFrame.
+        """
+        self._df = lf
 
     @property
     def df(self) -> pd.DataFrame:
@@ -103,7 +141,11 @@ class DefaultModelData:
     @property
     def unanalyzed(self) -> list[str]:
         """Return the names of the unanalyzed features."""
-        return self._unanalyzed
+        return (
+            self._unanalyzed
+            if isinstance(self._unanalyzed, list)
+            else [self._unanalyzed]
+        )
 
     @unanalyzed.setter
     def unanalyzed(self, unanalyzed: list[str]) -> None:
@@ -121,14 +163,16 @@ class DefaultModelData:
         """Return whether the cross-validation is time series."""
         return self._is_time_series_cv
 
-    def add_feature(self, name: str, values: pd.Series) -> None:
+    def add_feature(
+        self, name: str, values: pl.Series | pd.Series | list | np.ndarray
+    ) -> None:
         """Add a new feature to the DataFrame.
 
         Parameters
         ----------
         name : str
             The name of the new feature.
-        values : pd.Series
+        values : pl.Series | pd.Series | list | np.ndarray
             The values of the new feature.
 
         Returns
@@ -138,9 +182,16 @@ class DefaultModelData:
         if name in self.df_cols:
             raise ValueError(f"Feature '{name}' already exists in the DataFrame")
 
-        if len(values) != self.df.shape[0]:
+        if len(values) != self.shape[0]:
             raise ValueError(
-                f"Length of new feature '{name}' ({len(values)}) does not match the number of rows in the DataFrame ({self.df.shape[0]})"
+                f"Length of new feature '{name}' ({len(values)}) does not match the number of rows in the DataFrame ({self.shape[0]})"
             )
 
-        self.df = pd.concat([self.df, pd.Series(values, name=name)], axis=1)
+        if isinstance(values, (pd.Series, list, np.ndarray)):
+            self.lf = self._df.with_columns(pl.Series(values))
+        elif isinstance(values, pl.Series):
+            self.lf = self._df.with_columns(values)
+        else:
+            raise ValueError(
+                f"Values must be a pandas Series, a polars Series, a list, or a numpy array. Got {type(values)}"
+            )

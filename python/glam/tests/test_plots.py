@@ -1,4 +1,5 @@
 import pytest
+import polars as pl
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -34,11 +35,16 @@ def sample_dataframe():
         }
     )
 
+@pytest.fixture
+def sample_lazyframe(sample_dataframe):
+    """Fixture to create a sample LazyFrame for testing."""
+    return pl.from_pandas(sample_dataframe).lazy()
+
 
 @pytest.fixture
-def default_model_data(sample_dataframe):
+def default_model_data(sample_lazyframe):
     """Fixture to create a DefaultModelData instance."""
-    return DefaultModelData(df=sample_dataframe, y="hit_count", cv="count")
+    return DefaultModelData(df=sample_lazyframe, y="hit_count", cv="count")
 
 
 @pytest.fixture

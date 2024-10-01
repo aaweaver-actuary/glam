@@ -1,11 +1,11 @@
 [package]
-name = "maturin-template"
+name = "glam"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "maturin_template"
+name = "glam"
 crate-type = ["cdylib"]
 
 [dependencies]

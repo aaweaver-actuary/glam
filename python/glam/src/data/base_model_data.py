@@ -3,12 +3,18 @@
 from __future__ import annotations
 from typing import Protocol
 import pandas as pd
+import polars as pl
 
 __all__ = ["BaseModelData"]
 
 
 class BaseModelData(Protocol):
     """Class providing an interface for the GLM data functionality we need, no matter the underlying library."""
+
+    @property
+    def lf(self) -> pl.LazyFrame:
+        """Return the full data frame as a polars LazyFrame."""
+        ...
 
     @property
     def df(self) -> pd.DataFrame:

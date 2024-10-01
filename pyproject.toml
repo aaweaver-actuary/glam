@@ -1,44 +1,48 @@
 [project]
-name = "glam"
-version = "0.1.4"
-description = "Generalized Linear/Additive Modeling"
-authors = [
-    { name = "Andy Weaver", email = "andrewayersweaver+github@gmail.com" }
-]
-dependencies = [
+authors=[{ name="Andy Weaver", email="andrewayersweaver+github@gmail.com" }]
+dependencies=[
     "duckdb>=0.9",
-    "plotly>=5.0.0",
-    "statsmodels>=0.13.0",
-    "scikit-learn>=1.2.0",
-    "pyarrow>=11.0.0",
     "matplotlib>=3.0.0",
-    "scipy>=1.0.0",
-    "polars>=1.6.0",
     "pandas>=2.2.2",
+    "plotly>=5.0.0",
+    "polars>=1.6.0",
+    "pyarrow>=11.0.0",
+    "scikit-learn>=1.2.0",
+    "scipy>=1.0.0",
+    "statsmodels>=0.13.0",
 ]
-readme = "README.md"
-requires-python = ">= 3.8"
-license = { text = "MIT" }
+description="Generalized Linear/Additive Modeling"
+license={ text="MIT" }
+name="glam"
+readme="README.md"
+requires-python=">= 3.8"
+version="0.1.4"
 
 [build-system]
-requires = ["maturin>=1.2,<2.0"]
-build-backend = "maturin"
+requires=["hatchling>=1.25.0"]
+# requires = ["maturin>=1.2,<2.0"]
+# build-backend = "maturin"
 
 [tool.rye]
-managed = true
-dev-dependencies = [
+dev-dependencies=[
+    "coverage>=7.6.1",
+    "hatch>=1.12.0",
+    "hatchling>=1.25.0",
     "ipykernel>=6.29.5",
     "jupyter>=1.0.0",
     "notebook>=7.2.1",
-    "hatchling>=1.25.0",
-    "hatch>=1.12.0",
-    "ruff>=0.6.2",
     "pytest>=8.3.2",
-    "coverage>=7.6.1",
-    "pandas-stubs>=2.2.2.240909",
+    "ruff>=0.6.2",
 ]
+managed=true
 
-[tool.maturin]
-python-source = "python"
-module-name = "maturin_template._lowlevel"
-features = ["pyo3/extension-module"]
+# [tool.maturin]
+# features     =["pyo3/extension-module"]
+# module-name  ="glam._lowlevel"
+# python-source="python"
+
+[tool.hatch.metadata]
+allow-direct-references=true
+
+[tool.hatch.build.targets.wheel]
+packages=["python/glam"]
