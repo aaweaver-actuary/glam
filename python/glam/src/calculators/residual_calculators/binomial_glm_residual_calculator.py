@@ -1,5 +1,6 @@
 """Concrete implementation of the BaseDevianceResidualCalculator for Binomial GLMs."""
 
+from __future__ import annotations
 import pandas as pd
 import numpy as np
 
@@ -31,6 +32,7 @@ class BinomialGlmResidualCalculator:
 
     @property
     def X(self) -> pd.DataFrame:
+        """Return the design matrix."""
         if self._X is None:
             raise ValueError(
                 "X is not set in the constructor of the BinomialGlmResidualCalculator."
@@ -40,6 +42,7 @@ class BinomialGlmResidualCalculator:
 
     @property
     def y(self) -> pd.Series:
+        """Return the response variable."""
         if self._y is None:
             raise ValueError(
                 "y is not set in the constructor of the BinomialGlmResidualCalculator."
@@ -49,6 +52,7 @@ class BinomialGlmResidualCalculator:
 
     @property
     def yhat_proba(self) -> pd.Series:
+        """Return the predicted probabilities."""
         if self._yhat_proba is None:
             raise ValueError(
                 "yhat_proba is not set in the constructor of the BinomialGlmResidualCalculator."
@@ -58,6 +62,7 @@ class BinomialGlmResidualCalculator:
 
     @property
     def beta(self) -> pd.Series:
+        """Return the estimated coefficients."""
         if self._beta is None:
             raise ValueError(
                 "beta is not set in the constructor of the BinomialGlmResidualCalculator."
@@ -67,6 +72,7 @@ class BinomialGlmResidualCalculator:
 
     @property
     def hat_matrix(self) -> np.ndarray:
+        """Return the hat matrix."""
         """Calculate the hat matrix."""
         calculator = BinomialGlmHatMatrixCalculator(self.X, self.yhat_proba)
         return calculator.weight_matrix
@@ -93,6 +99,7 @@ class BinomialGlmResidualCalculator:
 
     @property
     def sign_function(self) -> pd.Series:
+        """Return the sign of the response variable."""
         return pd.Series(np.where(self.y.eq(1), 1, -1), name="Sign Function")
 
     @property
@@ -104,6 +111,7 @@ class BinomialGlmResidualCalculator:
 
     @property
     def leverage_calculator(self) -> BinomialGlmLeverageCalculator:
+        """Return the leverage calculator."""
         return BinomialGlmLeverageCalculator(self.X, self.yhat_proba)
 
     def deviance_residuals(self) -> pd.Series:
@@ -127,6 +135,7 @@ class BinomialGlmResidualCalculator:
         return pd.Series(unstandardized, name="Pearson Residuals")
 
     def partial_residuals(self, feature: str) -> pd.Series:
+        """Return the partial residuals for a given feature."""
         residuals = self.deviance_residuals()
 
         feature_index = self.X.columns.get_loc(feature)

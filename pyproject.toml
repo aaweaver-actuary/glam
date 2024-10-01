@@ -21,8 +21,8 @@ requires-python = ">= 3.8"
 license = { text = "MIT" }
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["maturin>=1.2,<2.0"]
+build-backend = "maturin"
 
 [tool.rye]
 managed = true
@@ -35,10 +35,10 @@ dev-dependencies = [
     "ruff>=0.6.2",
     "pytest>=8.3.2",
     "coverage>=7.6.1",
+    "pandas-stubs>=2.2.2.240909",
 ]
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/glam", "src/glam/glam_plots"]
+[tool.maturin]
+python-source = "python"
+module-name = "maturin_template._lowlevel"
+features = ["pyo3/extension-module"]

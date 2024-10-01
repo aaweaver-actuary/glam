@@ -14,6 +14,7 @@ class StatsmodelsGlmAicCalculator:
 
     @property
     def fitted_model(self) -> pd.Series:
+        """Return the fitted model object passed to the calculator."""
         return self._fitted_model
 
     def calculate(self) -> float:
