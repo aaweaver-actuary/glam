@@ -19,7 +19,8 @@ requires-python=">= 3.8"
 version="0.1.4"
 
 [build-system]
-requires=["hatchling>=1.25.0"]
+build-backend="hatchling.build"
+requires     =["hatchling"]
 # requires = ["maturin>=1.2,<2.0"]
 # build-backend = "maturin"
 
@@ -45,4 +46,4 @@ managed=true
 allow-direct-references=true
 
 [tool.hatch.build.targets.wheel]
-packages=["python/glam"]
+packages=["src/glam"]
