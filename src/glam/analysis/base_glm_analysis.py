@@ -1,3 +1,4 @@
+from __future__ import annotations
 from concurrent.futures import ProcessPoolExecutor
 from abc import abstractmethod
 import pandas as pd
@@ -17,6 +18,8 @@ __all__ = ["BaseGlmAnalysis"]
 
 
 class BaseGlmAnalysis(BaseAnalysis):
+    """Base class for GLM analysis."""
+
     def __init__(
         self,
         data: BaseModelData,
@@ -61,17 +64,13 @@ class BaseGlmAnalysis(BaseAnalysis):
         """Fits a single model for a cross-validation fold."""
         return self.fitter.fit(self.linear_formula, X_train, y_train)
 
-    def fit(self, parallel: bool = True) -> None:
+    def fit(self, parallel: bool = False) -> None:
         """Run the generator to fit the model for each cross-validation fold."""
         self.convert_data_to_floats()
         if parallel:
             with ProcessPoolExecutor() as executor:
                 models = [
-                    executor.submit(
-                        self._fit_single_fold,
-                        X,
-                        y,
-                    )
+                    executor.submit(self._fit_single_fold, X, y)
                     for X, y, _, _ in self.X_y_generator
                 ]
                 for model in models:
@@ -88,20 +87,19 @@ class BaseGlmAnalysis(BaseAnalysis):
     @abstractmethod
     def yhat(self, X: pd.DataFrame | None = None) -> pd.Series:
         """Return the predicted class."""
-        pass
 
     @abstractmethod
     def yhat_proba(self, X: pd.DataFrame | None = None) -> pd.Series:
         """Return the predicted probability of the positive class."""
-        pass
 
     @property
-    def summary(self):
+    def summary(self) -> pd.DataFrame:
         """Return the summary of the model."""
         raise NotImplementedError
 
     @property
     def coefficients(self) -> pd.Series:
+        """Return the coefficients of the model."""
         raise NotImplementedError
 
     @property
@@ -149,14 +147,14 @@ class BaseGlmAnalysis(BaseAnalysis):
 
     @abstractmethod
     def evaluate_new_feature(
-        self, new_feature: str, parallel: bool = True
+        self, new_feature: str, parallel: bool = False
     ) -> pd.DataFrame:
         pass
 
     def evaluate_new_features(
         self,
         new_features: list[str] | None = None,
-        parallel: bool = True,
+        parallel: bool = False,
         p_value_cutoff: float = 0.05,
     ) -> pd.DataFrame:
         if new_features is None:

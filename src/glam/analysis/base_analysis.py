@@ -1,3 +1,4 @@
+from __future__ import annotations
 from concurrent.futures import ProcessPoolExecutor
 import copy
 from abc import ABC, abstractmethod
@@ -263,17 +264,13 @@ class BaseAnalysis(ABC):
             self.models.add_model(model)
             yield self.models
 
-    def fit(self, parallel: bool = True) -> None:
+    def fit(self, parallel: bool = False) -> None:
         """Run the generator to fit the model for each cross-validation fold."""
         self.convert_data_to_floats()
         if parallel:
             with ProcessPoolExecutor() as executor:
                 models = [
-                    executor.submit(
-                        self._fit_single_fold,
-                        X,
-                        y,
-                    )
+                    executor.submit(self._fit_single_fold, X, y)
                     for X, y, _, _ in self.X_y_generator
                 ]
                 for model in models:
@@ -303,12 +300,12 @@ class BaseAnalysis(ABC):
 
     @abstractmethod
     def evaluate_new_feature(
-        self, new_feature: str, parallel: bool = True
+        self, new_feature: str, parallel: bool = False
     ) -> pd.DataFrame:
         pass
 
     def _generate_new_feature_eval(
-        self, new_features: list[str], parallel: bool = True
+        self, new_features: list[str], parallel: bool = False
     ) -> Generator[pd.DataFrame, None, None]:
         for f in new_features:
             yield self.evaluate_new_feature(f, parallel).iloc[0]

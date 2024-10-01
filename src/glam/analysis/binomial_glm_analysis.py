@@ -1,3 +1,6 @@
+"""Concrete implementation of the BaseGlmAnalysis class for binomial GLM analysis."""
+
+from __future__ import annotations
 import pandas as pd
 import logging
 
@@ -37,6 +40,8 @@ logger = logging.getLogger(__name__)
 
 
 class BinomialGlmAnalysis(BaseGlmAnalysis):
+    """Class for binomial GLM analysis."""
+
     def __init__(
         self,
         data: BaseModelData,
@@ -78,6 +83,7 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
         self._task = task
 
     def __repr__(self):
+        """Return the string representation of the class."""
         if len(self.features) > 0:
             return f"BinaryGlmAnalysis({self.linear_formula})"
 
@@ -101,16 +107,18 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
         return self.models.model.predict(X)
 
     @property
-    def summary(self):
+    def summary(self) -> pd.DataFrame:
         """Return the summary of the model."""
         return self.models.model.summary()
 
     @property
     def coefficients(self) -> pd.Series:
+        """Return the coefficients of the model."""
         return self.models.model.params
 
     @property
     def endog(self) -> pd.Series:
+        """Return the endogenous variable."""
         return (
             pd.Series(self.models.model.model.data.endog, name="endog")
             .round(0)
@@ -120,7 +128,7 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
     @property
     def exog(self) -> pd.DataFrame:
         return pd.DataFrame(
-            self.models.model.model.data.exog, columns=["Intercept"] + self.features
+            self.models.model.model.data.exog, columns=["Intercept", *self.features]
         )
 
     @property
@@ -134,27 +142,32 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
 
     @property
     def aic(self) -> float:
+        """Return the AIC of the model."""
         calculator = StatsmodelsGlmAicCalculator(self.models.model)
         return float(calculator.calculate())
 
     @property
     def bic(self) -> float:
+        """Return the BIC of the model."""
         calculator = StatsmodelsGlmBicCalculator(self.models.model)
         return float(calculator.calculate())
 
     @property
     def deviance(self) -> float:
+        """Calculate and return the deviance of the model."""
         calculator = StatsmodelsGlmDevianceCalculator(self.models.model)
         return float(calculator.calculate())
 
     @property
     def leverage(self) -> pd.Series:
+        """Calculate and return the leverage of the model."""
         calculator = BinomialGlmLeverageCalculator(self.exog, self.yhat_proba())
         return calculator.calculate()
 
     def evaluate_new_feature(
-        self, new_feature: str, parallel: bool = True
+        self, new_feature: str, parallel: bool = False
     ) -> pd.DataFrame:
+        """Evaluate a new feature."""
         evaluator = BinomialGlmAnalysisOfDevianceFeatureEvaluator(
             self, new_feature, parallel
         )

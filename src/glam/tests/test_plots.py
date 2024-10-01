@@ -35,6 +35,7 @@ def sample_dataframe():
         }
     )
 
+
 @pytest.fixture
 def sample_lazyframe(sample_dataframe):
     """Fixture to create a sample LazyFrame for testing."""

@@ -1,3 +1,6 @@
+"""Define a protocol interface for a list of models."""
+
+from __future__ import annotations
 from typing import Protocol, Generator
 
 from glam.src.fitted_model.base_fitted_model import BaseFittedModel
@@ -39,22 +42,38 @@ class BaseModelList(Protocol):
     """
 
     @property
-    def models(self) -> list[BaseFittedModel]: ...
+    def models(self) -> list[BaseFittedModel]:
+        """Return the list of models."""
+        ...
 
     @models.setter
-    def models(self, model: BaseFittedModel) -> None: ...
+    def models(self, model: BaseFittedModel) -> None:
+        """Set the list of models."""
+        ...
 
     @property
-    def model_generator(self) -> Generator[BaseFittedModel, None, None]: ...
+    def model_generator(self) -> Generator[BaseFittedModel, None, None]:
+        """Return a generator of models from the list of models."""
+        ...
 
     @property
-    def model_lookup(self) -> dict[int, BaseFittedModel]: ...
+    def model_lookup(self) -> dict[int, BaseFittedModel]:
+        """Return a dictionary of model indices to models."""
+        ...
 
     @property
-    def model(self) -> BaseFittedModel: ...
+    def model(self) -> BaseFittedModel:
+        """Return the model at the last index."""
+        ...
 
-    def get_model(self, index: int) -> BaseFittedModel: ...
+    def get_model(self, index: int) -> BaseFittedModel:
+        """Return the model at the given index."""
+        ...
 
-    def add_model(self, model: BaseFittedModel) -> None: ...
+    def add_model(self, model: BaseFittedModel) -> None:
+        """Add a fitted model to the list of models."""
+        ...
 
-    def reset_models(self) -> None: ...
+    def reset_models(self) -> None:
+        """Reset the list of models."""
+        ...
