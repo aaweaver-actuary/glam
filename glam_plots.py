@@ -7,8 +7,8 @@ import polars as pl
 from plotly.subplots import make_subplots  # type: ignore
 import plotly.express as px  # type: ignore
 
-from glam.analysis.binomial_glm_analysis import BinomialGlmAnalysis  # type: ignore
-from glam.src.data.default_model_data import DefaultModelData  # type: ignore
+from glam.analysis.binomial_glm_analysis import BinomialGlmAnalysis
+from glam.src.data.default_model_data import DefaultModelData
 
 
 def categorical_plot(

@@ -364,52 +364,56 @@
 <span class="line-any" title="No Anys on this line!">from plotly.subplots import make_subplots  # type: ignore</span>
 <span class="line-any" title="No Anys on this line!">import plotly.express as px  # type: ignore</span>
 <span class="line-empty" title="No Anys on this line!"></span>
-<span class="line-any" title="No Anys on this line!">from glam.analysis.binomial_glm_analysis import BinomialGlmAnalysis  # type: ignore</span>
-<span class="line-any" title="No Anys on this line!">from glam.src.data.default_model_data import DefaultModelData  # type: ignore</span>
+<span class="line-precise" title="No Anys on this line!">from glam.analysis.binomial_glm_analysis import BinomialGlmAnalysis</span>
+<span class="line-precise" title="No Anys on this line!">from glam.src.data.default_model_data import DefaultModelData</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-any" title="Any Types on this line: 
-Unimported (x3)">def categorical_plot(</span>
+Unimported (x1)">def categorical_plot(</span>
 <span class="line-empty" title="No Anys on this line!">    model: BinomialGlmAnalysis,</span>
 <span class="line-empty" title="No Anys on this line!">    data: DefaultModelData,</span>
 <span class="line-precise" title="No Anys on this line!">    test_feature: str = "business_category",</span>
 <span class="line-empty" title="No Anys on this line!">) -&gt; go.Figure:</span>
 <span class="line-empty" title="No Anys on this line!">    """Create a categorical plot."""</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x4)">    model2 = model.copy()</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x3)">    model2.add_feature(test_feature)</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x3)">    model2.fit()</span>
+<span class="line-precise" title="No Anys on this line!">    model2 = model.copy()</span>
+<span class="line-precise" title="No Anys on this line!">    model2.add_feature(test_feature)</span>
+<span class="line-precise" title="No Anys on this line!">    model2.fit()</span>
 <span class="line-empty" title="No Anys on this line!"></span>
-<span class="line-any" title="Any Types on this line: 
-Omitted Generics (x35)
-Explicit (x10)
-Unimported (x6)">    df = pd.concat([model.y, model.cv, model.X], axis=1)</span>
-<span class="line-precise" title="No Anys on this line!">    df = df.loc[df["fold"] &gt;= 10]</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x3)">    df[test_feature] = data.df[test_feature]</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x3)">    df["current_model"] = model.yhat_proba(</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x6)">        df.drop(columns=[model.y.name, model.cv.name, test_feature])</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x37)
+Explicit (x10)">    df = pd.concat([model.y, model.cv, model.X], axis=1)</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">    df = df.loc[df["fold"] &gt;= 10]</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">    df[test_feature] = data.df[test_feature]</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x2)">    df["current_model"] = model.yhat_proba(</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Explicit (x15)
+Omitted Generics (x2)">        df.drop(columns=[model.y.name, model.cv.name, test_feature])</span>
 <span class="line-empty" title="No Anys on this line!">    )</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x9)">    df["test_model"] = model2.yhat_proba(df.drop(columns=[model.y.name, model.cv.name]))</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x4)
+Explicit (x15)">    df["test_model"] = model2.yhat_proba(df.drop(columns=[model.y.name, model.cv.name]))</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-precise" title="No Anys on this line!">    count_by_level = (</span>
-<span class="line-precise" title="No Anys on this line!">        df.groupby(test_feature)</span>
+<span class="line-precise" title="Any Types on this line: 
+Omitted Generics (x21)
+Explicit (x1)">        df.groupby(test_feature)</span>
 <span class="line-precise" title="No Anys on this line!">        .count()[["hit_count"]]</span>
 <span class="line-empty" title="No Anys on this line!">        .reset_index()</span>
 <span class="line-precise" title="No Anys on this line!">        .rename(columns={"hit_count": "count"})</span>
 <span class="line-empty" title="No Anys on this line!">    )</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-precise" title="No Anys on this line!">    ave_by_level = (</span>
-<span class="line-precise" title="No Anys on this line!">        df.groupby(test_feature)</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x47)
+Explicit (x1)">        df.groupby(test_feature)</span>
 <span class="line-precise" title="No Anys on this line!">        .mean()[["hit_count", "current_model", "test_model"]]</span>
 <span class="line-empty" title="No Anys on this line!">        .reset_index()</span>
 <span class="line-precise" title="No Anys on this line!">        .set_index(test_feature)</span>
-<span class="line-precise" title="No Anys on this line!">        .join(count_by_level.set_index(test_feature), on=test_feature)</span>
+<span class="line-precise" title="Any Types on this line: 
+Omitted Generics (x12)">        .join(count_by_level.set_index(test_feature), on=test_feature)</span>
 <span class="line-empty" title="No Anys on this line!">        .reset_index()</span>
 <span class="line-precise" title="No Anys on this line!">        .sort_values(test_feature, ascending=True)</span>
 <span class="line-empty" title="No Anys on this line!">    )</span>
@@ -421,8 +425,10 @@ Unimported (x3)">    fig = make_subplots(specs=[[{"secondary_y": True}]])</span>
 Unimported (x3)">    fig.add_trace(</span>
 <span class="line-any" title="Any Types on this line: 
 Unimported (x3)">        go.Bar(</span>
-<span class="line-precise" title="No Anys on this line!">            x=ave_by_level[test_feature],</span>
-<span class="line-precise" title="No Anys on this line!">            y=ave_by_level["count"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            x=ave_by_level[test_feature],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            y=ave_by_level["count"],</span>
 <span class="line-precise" title="No Anys on this line!">            name="Count",</span>
 <span class="line-empty" title="No Anys on this line!">            marker={</span>
 <span class="line-precise" title="No Anys on this line!">                "color": "gray",</span>
@@ -439,8 +445,10 @@ Unimported (x3)">        go.Bar(</span>
 Unimported (x3)">    fig.add_trace(</span>
 <span class="line-any" title="Any Types on this line: 
 Unimported (x3)">        go.Scattergl(</span>
-<span class="line-precise" title="No Anys on this line!">            x=ave_by_level[test_feature],</span>
-<span class="line-precise" title="No Anys on this line!">            y=ave_by_level["hit_count"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            x=ave_by_level[test_feature],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            y=ave_by_level["hit_count"],</span>
 <span class="line-precise" title="No Anys on this line!">            mode="lines+markers",</span>
 <span class="line-precise" title="No Anys on this line!">            name="Actual",</span>
 <span class="line-empty" title="No Anys on this line!">            marker={</span>
@@ -458,8 +466,10 @@ Unimported (x3)">        go.Scattergl(</span>
 Unimported (x3)">    fig.add_trace(</span>
 <span class="line-any" title="Any Types on this line: 
 Unimported (x3)">        go.Scattergl(</span>
-<span class="line-precise" title="No Anys on this line!">            x=ave_by_level[test_feature],</span>
-<span class="line-precise" title="No Anys on this line!">            y=ave_by_level["current_model"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            x=ave_by_level[test_feature],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            y=ave_by_level["current_model"],</span>
 <span class="line-precise" title="No Anys on this line!">            mode="lines+markers",</span>
 <span class="line-precise" title="No Anys on this line!">            name="Current Model",</span>
 <span class="line-empty" title="No Anys on this line!">            marker={</span>
@@ -477,8 +487,10 @@ Unimported (x3)">        go.Scattergl(</span>
 Unimported (x3)">    fig.add_trace(</span>
 <span class="line-any" title="Any Types on this line: 
 Unimported (x3)">        go.Scattergl(</span>
-<span class="line-precise" title="No Anys on this line!">            x=ave_by_level[test_feature],</span>
-<span class="line-precise" title="No Anys on this line!">            y=ave_by_level["test_model"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            x=ave_by_level[test_feature],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            y=ave_by_level["test_model"],</span>
 <span class="line-precise" title="No Anys on this line!">            mode="lines+markers",</span>
 <span class="line-precise" title="No Anys on this line!">            name="Test Model",</span>
 <span class="line-empty" title="No Anys on this line!">            marker={</span>
@@ -508,53 +520,60 @@ Unimported (x1)">    return fig</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-any" title="Any Types on this line: 
-Unimported (x3)">def numeric_plot(</span>
+Unimported (x1)">def numeric_plot(</span>
 <span class="line-empty" title="No Anys on this line!">    model: BinomialGlmAnalysis,</span>
 <span class="line-empty" title="No Anys on this line!">    data: DefaultModelData,</span>
 <span class="line-empty" title="No Anys on this line!">    test_feature: str,</span>
 <span class="line-precise" title="No Anys on this line!">    n_bins: int = 5,</span>
 <span class="line-empty" title="No Anys on this line!">) -&gt; go.Figure:</span>
 <span class="line-empty" title="No Anys on this line!">    """Bin the numeric feature into n_bins and plot the actual hit ratio and model predictions."""</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x4)">    model2 = model.copy()</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x3)">    model2.add_feature(test_feature)</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x3)">    model2.fit()</span>
+<span class="line-precise" title="No Anys on this line!">    model2 = model.copy()</span>
+<span class="line-precise" title="No Anys on this line!">    model2.add_feature(test_feature)</span>
+<span class="line-precise" title="No Anys on this line!">    model2.fit()</span>
 <span class="line-empty" title="No Anys on this line!"></span>
-<span class="line-any" title="Any Types on this line: 
-Omitted Generics (x35)
-Explicit (x10)
-Unimported (x6)">    df = pd.concat([model.y, model.cv, model.X], axis=1)</span>
-<span class="line-precise" title="No Anys on this line!">    df = df.loc[df["fold"] &gt;= 10]</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x3)">    df[test_feature] = data.df[test_feature]</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x3)">    df["current_model"] = model.yhat_proba(</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x6)">        df.drop(columns=[model.y.name, model.cv.name, test_feature])</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x37)
+Explicit (x10)">    df = pd.concat([model.y, model.cv, model.X], axis=1)</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">    df = df.loc[df["fold"] &gt;= 10]</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">    df[test_feature] = data.df[test_feature]</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x2)">    df["current_model"] = model.yhat_proba(</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Explicit (x15)
+Omitted Generics (x2)">        df.drop(columns=[model.y.name, model.cv.name, test_feature])</span>
 <span class="line-empty" title="No Anys on this line!">    )</span>
-<span class="line-any" title="Any Types on this line: 
-Unimported (x9)">    df["test_model"] = model2.yhat_proba(df.drop(columns=[model.y.name, model.cv.name]))</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x4)
+Explicit (x15)">    df["test_model"] = model2.yhat_proba(df.drop(columns=[model.y.name, model.cv.name]))</span>
 <span class="line-empty" title="No Anys on this line!"></span>
-<span class="line-precise" title="Any Types on this line: 
-Omitted Generics (x9)">    bins = pd.qcut(df[test_feature], n_bins, duplicates="drop")</span>
-<span class="line-precise" title="No Anys on this line!">    df["bin"] = bins</span>
-<span class="line-precise" title="No Anys on this line!">    df["bin"] = df["bin"].astype(str)</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x12)">    bins = pd.qcut(df[test_feature], n_bins, duplicates="drop")</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">    df["bin"] = bins</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Explicit (x1)
+Omitted Generics (x1)">    df["bin"] = df["bin"].astype(str)</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-precise" title="No Anys on this line!">    count_by_level = (</span>
-<span class="line-precise" title="No Anys on this line!">        df.groupby("bin")</span>
+<span class="line-precise" title="Any Types on this line: 
+Omitted Generics (x21)
+Explicit (x1)">        df.groupby("bin")</span>
 <span class="line-precise" title="No Anys on this line!">        .count()[["hit_count"]]</span>
 <span class="line-empty" title="No Anys on this line!">        .reset_index()</span>
 <span class="line-precise" title="No Anys on this line!">        .rename(columns={"hit_count": "count"})</span>
 <span class="line-empty" title="No Anys on this line!">    )</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-precise" title="No Anys on this line!">    ave_by_level = (</span>
-<span class="line-precise" title="No Anys on this line!">        df.groupby("bin")</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x47)
+Explicit (x1)">        df.groupby("bin")</span>
 <span class="line-precise" title="No Anys on this line!">        .mean()[["hit_count", "current_model", "test_model"]]</span>
 <span class="line-empty" title="No Anys on this line!">        .reset_index()</span>
 <span class="line-precise" title="No Anys on this line!">        .set_index("bin")</span>
-<span class="line-precise" title="No Anys on this line!">        .join(count_by_level.set_index("bin"), on="bin")</span>
+<span class="line-precise" title="Any Types on this line: 
+Omitted Generics (x12)">        .join(count_by_level.set_index("bin"), on="bin")</span>
 <span class="line-empty" title="No Anys on this line!">        .reset_index()</span>
 <span class="line-precise" title="No Anys on this line!">        .sort_values("bin", ascending=True)</span>
 <span class="line-empty" title="No Anys on this line!">    )</span>
@@ -566,8 +585,10 @@ Unimported (x3)">    fig = make_subplots(specs=[[{"secondary_y": True}]])</span>
 Unimported (x3)">    fig.add_trace(</span>
 <span class="line-any" title="Any Types on this line: 
 Unimported (x3)">        go.Bar(</span>
-<span class="line-precise" title="No Anys on this line!">            x=ave_by_level["bin"],</span>
-<span class="line-precise" title="No Anys on this line!">            y=ave_by_level["count"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            x=ave_by_level["bin"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            y=ave_by_level["count"],</span>
 <span class="line-precise" title="No Anys on this line!">            name="Count",</span>
 <span class="line-empty" title="No Anys on this line!">            marker={</span>
 <span class="line-precise" title="No Anys on this line!">                "color": "gray",</span>
@@ -584,8 +605,10 @@ Unimported (x3)">        go.Bar(</span>
 Unimported (x3)">    fig.add_trace(</span>
 <span class="line-any" title="Any Types on this line: 
 Unimported (x3)">        go.Scattergl(</span>
-<span class="line-precise" title="No Anys on this line!">            x=ave_by_level["bin"],</span>
-<span class="line-precise" title="No Anys on this line!">            y=ave_by_level["hit_count"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            x=ave_by_level["bin"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            y=ave_by_level["hit_count"],</span>
 <span class="line-precise" title="No Anys on this line!">            mode="lines+markers",</span>
 <span class="line-precise" title="No Anys on this line!">            name="Actual",</span>
 <span class="line-empty" title="No Anys on this line!">            marker={</span>
@@ -603,8 +626,10 @@ Unimported (x3)">        go.Scattergl(</span>
 Unimported (x3)">    fig.add_trace(</span>
 <span class="line-any" title="Any Types on this line: 
 Unimported (x3)">        go.Scattergl(</span>
-<span class="line-precise" title="No Anys on this line!">            x=ave_by_level["bin"],</span>
-<span class="line-precise" title="No Anys on this line!">            y=ave_by_level["current_model"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            x=ave_by_level["bin"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            y=ave_by_level["current_model"],</span>
 <span class="line-precise" title="No Anys on this line!">            mode="lines+markers",</span>
 <span class="line-precise" title="No Anys on this line!">            name="Current Model",</span>
 <span class="line-empty" title="No Anys on this line!">            marker={</span>
@@ -622,8 +647,10 @@ Unimported (x3)">        go.Scattergl(</span>
 Unimported (x3)">    fig.add_trace(</span>
 <span class="line-any" title="Any Types on this line: 
 Unimported (x3)">        go.Scattergl(</span>
-<span class="line-precise" title="No Anys on this line!">            x=ave_by_level["bin"],</span>
-<span class="line-precise" title="No Anys on this line!">            y=ave_by_level["test_model"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            x=ave_by_level["bin"],</span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x1)">            y=ave_by_level["test_model"],</span>
 <span class="line-precise" title="No Anys on this line!">            mode="lines+markers",</span>
 <span class="line-precise" title="No Anys on this line!">            name="Test Model",</span>
 <span class="line-empty" title="No Anys on this line!">            marker={</span>

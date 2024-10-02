@@ -19,6 +19,6 @@ class StatsmodelsGlmDegreesOfFreedomCalculator:
     def calculate(self) -> float:
         """Calculate the degrees of freedom of the GLM."""
         if self.analysis.fitted_model is not None:
-            return self.analysis.fitted_model.df_resid
+            return self.analysis.fitted_model.df_resid  # type: ignore
         else:
             raise ValueError("The analysis object does not have a fitted model.")

@@ -107,29 +107,29 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
     def yhat(self, X: pd.DataFrame | None = None) -> pd.Series:
         """Return the predicted class."""
         if X is None:
-            return self.model.mu.round(0)
-        return self.model.predict(X).round(0)
+            return pd.Series(self.model.mu.round(0))
+        return pd.Series(self.model.predict(X).round(0))
 
     def yhat_proba(self, X: pd.DataFrame | None = None) -> pd.Series:
         """Return the predicted probability of the positive class."""
         if X is None:
             return self.mu
-        return self.model.predict(X)
+        return pd.Series(self.model.predict(X))
 
     @property
     def summary(self) -> pd.DataFrame:
         """Return the summary of the model."""
-        return self.model.summary()
+        return self.model.summary()  # type: ignore
 
     @property
     def coefficients(self) -> pd.Series:
         """Return the coefficients of the model."""
-        return self.model.params
+        return pd.Series(self.model.params)  # type: ignore
 
     @property
     def endog(self) -> pd.Series:
         """Return the endogenous variable."""
-        return pd.Series(self.model.model.data.endog, name="endog").round(0).astype(int)
+        return pd.Series(self.model.model.data.endog.round(0).astype(int), name="endog")  # type: ignore
 
     @property
     def exog(self) -> pd.DataFrame:

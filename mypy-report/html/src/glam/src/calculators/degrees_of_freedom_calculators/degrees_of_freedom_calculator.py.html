@@ -55,7 +55,7 @@
 <span class="line-empty" title="No Anys on this line!">        """Calculate the degrees of freedom of the GLM."""</span>
 <span class="line-precise" title="No Anys on this line!">        if self.analysis.fitted_model is not None:</span>
 <span class="line-any" title="Any Types on this line: 
-Error (x1)">            return self.analysis.fitted_model.df_resid</span>
+Error (x1)">            return self.analysis.fitted_model.df_resid  # type: ignore</span>
 <span class="line-empty" title="No Anys on this line!">        else:</span>
 <span class="line-precise" title="No Anys on this line!">            raise ValueError("The analysis object does not have a fitted model.")</span>
 </pre></td>

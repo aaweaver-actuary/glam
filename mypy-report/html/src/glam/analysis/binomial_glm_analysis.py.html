@@ -308,9 +308,13 @@ Omitted Generics (x1)">    def yhat(self, X: pd.DataFrame | None = None) -&gt; p
 <span class="line-empty" title="No Anys on this line!">        """Return the predicted class."""</span>
 <span class="line-precise" title="No Anys on this line!">        if X is None:</span>
 <span class="line-any" title="Any Types on this line: 
-Unimported (x4)">            return self.model.mu.round(0)</span>
+Omitted Generics (x77)
+Explicit (x2)
+Unimported (x4)">            return pd.Series(self.model.mu.round(0))</span>
 <span class="line-any" title="Any Types on this line: 
-Unimported (x5)">        return self.model.predict(X).round(0)</span>
+Omitted Generics (x77)
+Explicit (x2)
+Unimported (x5)">        return pd.Series(self.model.predict(X).round(0))</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-imprecise" title="Any Types on this line: 
 Omitted Generics (x1)">    def yhat_proba(self, X: pd.DataFrame | None = None) -&gt; pd.Series:</span>
@@ -319,20 +323,24 @@ Omitted Generics (x1)">    def yhat_proba(self, X: pd.DataFrame | None = None) -
 <span class="line-imprecise" title="Any Types on this line: 
 Omitted Generics (x1)">            return self.mu</span>
 <span class="line-any" title="Any Types on this line: 
-Unimported (x3)">        return self.model.predict(X)</span>
+Omitted Generics (x77)
+Explicit (x2)
+Unimported (x3)">        return pd.Series(self.model.predict(X))</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-empty" title="No Anys on this line!">    @property</span>
 <span class="line-precise" title="No Anys on this line!">    def summary(self) -&gt; pd.DataFrame:</span>
 <span class="line-empty" title="No Anys on this line!">        """Return the summary of the model."""</span>
 <span class="line-any" title="Any Types on this line: 
-Unimported (x3)">        return self.model.summary()</span>
+Unimported (x3)">        return self.model.summary()  # type: ignore</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-empty" title="No Anys on this line!">    @property</span>
 <span class="line-imprecise" title="Any Types on this line: 
 Omitted Generics (x1)">    def coefficients(self) -&gt; pd.Series:</span>
 <span class="line-empty" title="No Anys on this line!">        """Return the coefficients of the model."""</span>
 <span class="line-any" title="Any Types on this line: 
-Unimported (x2)">        return self.model.params</span>
+Omitted Generics (x77)
+Explicit (x2)
+Unimported (x2)">        return pd.Series(self.model.params)  # type: ignore</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-empty" title="No Anys on this line!">    @property</span>
 <span class="line-imprecise" title="Any Types on this line: 
@@ -341,7 +349,7 @@ Omitted Generics (x1)">    def endog(self) -&gt; pd.Series:</span>
 <span class="line-any" title="Any Types on this line: 
 Omitted Generics (x77)
 Explicit (x2)
-Unimported (x4)">        return pd.Series(self.model.model.data.endog, name="endog").round(0).astype(int)</span>
+Unimported (x8)">        return pd.Series(self.model.model.data.endog.round(0).astype(int), name="endog")  # type: ignore</span>
 <span class="line-empty" title="No Anys on this line!"></span>
 <span class="line-empty" title="No Anys on this line!">    @property</span>
 <span class="line-precise" title="No Anys on this line!">    def exog(self) -&gt; pd.DataFrame:</span>
