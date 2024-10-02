@@ -2,7 +2,7 @@
 
 import pandas as pd
 from glam import DefaultModelData, BinomialGlmAnalysis
-from glam.src.clusterers.feature_clusterers.decision_tree_feature_clusterer import (
+from glam.src.clusterers.feature_clusterers.decision_tree_feature_clusterer import ( # type: ignore
     DecisionTreeFeatureClusterer,
 )
 

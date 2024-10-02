@@ -49,3 +49,7 @@ class BinomialGlmLeverageCalculator:
             return self._leverage_all()
 
         return self._leverage_single(index)
+
+    def calculate_all(self) -> pd.Series:
+        """Calculate the leverage for all observations."""
+        return self._leverage_all()

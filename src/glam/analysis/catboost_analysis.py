@@ -1,3 +1,6 @@
+"""Define a concrete implementation of the BaseAnalysis class for a Catboost GBM model."""
+
+from __future__ import annotations
 import pandas as pd
 import logging
 from concurrent.futures import ProcessPoolExecutor
@@ -21,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 class CatboostGbmAnalysis(BaseAnalysis):
+    """Represents a Catboost gradient-boosted tree model analysis."""
+
     def __init__(
         self,
         data: BaseModelData,
@@ -62,6 +67,7 @@ class CatboostGbmAnalysis(BaseAnalysis):
         self._task = task
 
     def __repr__(self):
+        """Return a string representation of the class."""
         if len(self.features) > 0:
             return f"CatboostGbmAnalysis({self.linear_formula})"
 
@@ -85,33 +91,37 @@ class CatboostGbmAnalysis(BaseAnalysis):
         return self.models.model.predict(X)
 
     @property
-    def summary(self):
+    def summary(self) -> pd.DataFrame:
         """Return the summary of the model."""
         return self.models.model.summary()
 
     @property
     def coefficients(self) -> pd.Series:
+        """Return the coefficients of the model."""
         return self.models.model.coefficients
 
     @property
     def endog(self) -> pd.Series:
+        """Return the response variable."""
         return (
             pd.Series(self.models.model.model.data.y, name="endog").round(0).astype(int)
         )
 
     @property
     def exog(self) -> pd.DataFrame:
+        """Return the feature matrix."""
         return pd.DataFrame(
-            self.models.model.model.data.X, columns=["Intercept"] + self.features
+            self.models.model.model.data.X, columns=["Intercept", *self.features]
         )
 
-    def _fit_single_fold(
+    def _fit_single_fold(  # type: ignore
         self,
         X_train: pd.DataFrame,
         y_train: pd.Series,
         X_test: pd.DataFrame,
         y_test: pd.Series,
     ) -> BaseFittedModel:
+        """Fit a single model for a cross-validation fold."""
         return self.fitter.fit(X_train, y_train, X_test, y_test)
 
     def fit_cv(self) -> Generator[BaseModelList, None, None]:
@@ -128,11 +138,7 @@ class CatboostGbmAnalysis(BaseAnalysis):
             with ProcessPoolExecutor() as executor:
                 models = [
                     executor.submit(
-                        self._fit_single_fold,
-                        X_train,
-                        y_train,
-                        X_test,
-                        y_test,
+                        self._fit_single_fold, X_train, y_train, X_test, y_test
                     )
                     for X_train, y_train, X_test, y_test in self.X_y_generator
                 ]
@@ -145,7 +151,9 @@ class CatboostGbmAnalysis(BaseAnalysis):
     def evaluate_new_feature(
         self, new_feature: str, parallel: bool = True
     ) -> pd.DataFrame:
-        pass
+        """Unimplemented method to evaluate the effect of a new feature on the model."""
+        return pd.DataFrame({"new": [new_feature], "parallel": [parallel]})
 
     def evaluate_new_features(self) -> pd.DataFrame:
-        pass
+        """Evaluate the effect of new features on the model (once implemented)."""
+        return pd.DataFrame()

@@ -35,7 +35,7 @@ class BaseGlmAnalysis(BaseAnalysis):
         task: ModelTask = ModelTask.CLASSIFICATION,
     ):
         self._data = data
-        self._fitter = fitter  # type: StatsmodelsFormulaGlmFitter | None
+        self._fitter = fitter  # type: ignore
         self._models = models
         self._features = features
         self._interactions = interactions
@@ -56,7 +56,7 @@ class BaseGlmAnalysis(BaseAnalysis):
     @property
     def fitter(self) -> StatsmodelsFormulaGlmFitter | None:  # type: ignore
         """Override the BaseAnalysis class to return the fitter object for fitting Statsmodels GLMs."""
-        return self._fitter
+        return self._fitter  # type: ignore
 
     @property
     def linear_formula(self) -> str:

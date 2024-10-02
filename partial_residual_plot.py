@@ -1,8 +1,7 @@
 """Define a function to plot partial residual plots."""
 
-from re import T
-import plotly.graph_objects as go
-import statsmodels.api as sm
+import plotly.graph_objects as go  # type: ignore
+import statsmodels.api as sm  # type: ignore
 
 
 def logistic_regression_partial_residual_plot(model: sm.GLM, feature: str) -> go.Figure:

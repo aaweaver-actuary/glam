@@ -36,6 +36,9 @@ dev-dependencies=[
     "pytest>=8.3.2",
     "ruff>=0.6.2",
     "pandas-stubs>=2.2.2.240909",
+    "pyodbc>=5.1.0",
+    "mypy>=1.11.2",
+    "lxml>=5.3.0",
 ]
 managed=true
 

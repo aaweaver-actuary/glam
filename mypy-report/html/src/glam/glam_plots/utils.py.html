@@ -1,0 +1,50 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="../../../../mypy-html.css">
+</head>
+<body>
+<h2>glam.glam_plots.utils</h2>
+<table>
+<caption>src/glam/glam_plots/utils.py</caption>
+<tbody><tr>
+<td class="table-lines"><pre><span id="L1" class="lineno"><a class="lineno" href="#L1">1</a></span>
+<span id="L2" class="lineno"><a class="lineno" href="#L2">2</a></span>
+<span id="L3" class="lineno"><a class="lineno" href="#L3">3</a></span>
+<span id="L4" class="lineno"><a class="lineno" href="#L4">4</a></span>
+<span id="L5" class="lineno"><a class="lineno" href="#L5">5</a></span>
+<span id="L6" class="lineno"><a class="lineno" href="#L6">6</a></span>
+<span id="L7" class="lineno"><a class="lineno" href="#L7">7</a></span>
+<span id="L8" class="lineno"><a class="lineno" href="#L8">8</a></span>
+<span id="L9" class="lineno"><a class="lineno" href="#L9">9</a></span>
+<span id="L10" class="lineno"><a class="lineno" href="#L10">10</a></span>
+<span id="L11" class="lineno"><a class="lineno" href="#L11">11</a></span>
+<span id="L12" class="lineno"><a class="lineno" href="#L12">12</a></span>
+<span id="L13" class="lineno"><a class="lineno" href="#L13">13</a></span>
+<span id="L14" class="lineno"><a class="lineno" href="#L14">14</a></span>
+<span id="L15" class="lineno"><a class="lineno" href="#L15">15</a></span>
+<span id="L16" class="lineno"><a class="lineno" href="#L16">16</a></span>
+</pre></td>
+<td class="table-code"><pre><span class="line-empty" title="No Anys on this line!">"""Utility functions for the glam_plots package."""</span>
+<span class="line-empty" title="No Anys on this line!"></span>
+<span class="line-empty" title="No Anys on this line!"></span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x2)">def get_marker_props(color: str, opacity: float = 0.5, size: int = 10) -&gt; dict:</span>
+<span class="line-empty" title="No Anys on this line!">    """Return a dictionary with marker properties."""</span>
+<span class="line-empty" title="No Anys on this line!">    return {</span>
+<span class="line-precise" title="No Anys on this line!">        "size": size,</span>
+<span class="line-precise" title="No Anys on this line!">        "color": color,</span>
+<span class="line-precise" title="No Anys on this line!">        "opacity": opacity,</span>
+<span class="line-precise" title="No Anys on this line!">        "line": {"color": "black", "width": 0.5},</span>
+<span class="line-empty" title="No Anys on this line!">    }</span>
+<span class="line-empty" title="No Anys on this line!"></span>
+<span class="line-empty" title="No Anys on this line!"></span>
+<span class="line-imprecise" title="Any Types on this line: 
+Omitted Generics (x2)">def get_line_props(color: str, width: float = 1.5, dash: str = "solid") -&gt; dict:</span>
+<span class="line-empty" title="No Anys on this line!">    """Return a dictionary with line properties."""</span>
+<span class="line-precise" title="No Anys on this line!">    return {"color": color, "width": width, "dash": dash}</span>
+</pre></td>
+</tr></tbody>
+</table>
+</body>
+</html>

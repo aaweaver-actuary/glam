@@ -35,6 +35,10 @@ class BaseFittedModel(Protocol):
         Return the expected value of the response variable. For a binary classification model, this is the probability of the positive class. If `X` is provided, return the expected value of the response variable for the given feature matrix. Otherwise, return the expected value of the response variable for the data used to fit the model.
     """
 
+    def __copy__(self):
+        """Implement a deepcopy for a BaseFittedModel."""
+        ...
+
     @property
     def is_fitted(self) -> bool:
         """Return whether the model has been fitted."""

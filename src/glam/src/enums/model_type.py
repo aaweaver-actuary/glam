@@ -1,4 +1,5 @@
 """Module for model task type enum class."""
+
 from enum import StrEnum
 
 __all__ = ["ModelType"]

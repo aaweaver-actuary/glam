@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from glam.types import GlamPlot
 
+
 class BasePlotter(ABC):
     """Define an abstract base class for all plotter classes."""
 

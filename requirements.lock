@@ -28,7 +28,7 @@ kiwisolver==1.4.7
 matplotlib==3.9.2
     # via catboost
     # via glam
-numpy==2.1.1
+numpy==1.26.4
     # via catboost
     # via contourpy
     # via matplotlib
@@ -55,7 +55,7 @@ plotly==5.24.1
     # via glam
 polars==1.9.0
     # via glam
-pyarrow==17.0.0
+pyarrow==14.0.2
     # via glam
 pyparsing==3.1.4
     # via matplotlib

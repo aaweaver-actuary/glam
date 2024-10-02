@@ -32,7 +32,7 @@ def find_next_variable(glm: BaseModelAnalysis) -> str:
         f"Remaining features ({len(remaining_features)}): {remaining_features}"
     )
 
-    def mean_std(values: list[float] ) -> tuple[float, float]:
+    def mean_std(values: list[float]) -> tuple[float, float]:
         return np.mean(values), np.std(values)
 
     def evaluate_feature(
@@ -71,15 +71,7 @@ def find_next_variable(glm: BaseModelAnalysis) -> str:
             )
         except Exception as e:
             logger.error(f"Error evaluating feature {f}: {e}")
-            return (
-                (0, 0),
-                (0, 0),
-                (0, 0),
-                (0, 0),
-                (0, 0),
-                0,
-                0,
-            )
+            return ((0, 0), (0, 0), (0, 0), (0, 0), (0, 0), 0, 0)
 
     results = [evaluate_feature(glm, f) for f in tqdm(remaining_features)]
 
@@ -94,10 +86,7 @@ def find_next_variable(glm: BaseModelAnalysis) -> str:
                 "auc_lower_bound": [r[4][0] for r in results],
             }
         )
-        .assign(
-            aic=[r[5] for r in results],
-            deviance=[r[6] for r in results],
-        )
+        .assign(aic=[r[5] for r in results], deviance=[r[6] for r in results])
         .sort_values(by=["aic"], ascending=True)
     )
 
