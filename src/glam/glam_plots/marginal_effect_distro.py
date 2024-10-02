@@ -10,7 +10,6 @@ def marginal_effect_distro(
     df: pl.LazyFrame, feature_name: str | None = None, by: str | None = None
 ) -> go.Figure:
     """Plot the distribution of marginal effects of a feature or all features in a GLAM model."""
-
     fig = go.Figure()
 
     if feature_name is not None:
@@ -87,9 +86,9 @@ def marginal_effect_distro(
         )
     else:
         layout = dict(
-            title=dict(text=f"Distribution of marginal effects of all features"),
+            title=dict(text="Distribution of marginal effects of all features"),
             yaxis=dict(
-                title=f"<b>Hit ratio impact</b><br>Unit increase to <i>each feature</i>"
+                title="<b>Hit ratio impact</b><br>Unit increase to <i>each feature</i>"
             ),
         )
 

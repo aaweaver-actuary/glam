@@ -10,6 +10,7 @@ dependencies=[
     "scikit-learn>=1.2.0",
     "scipy>=1.0.0",
     "statsmodels>=0.13.0",
+    "catboost==1.2.2",
 ]
 description="Generalized Linear/Additive Modeling"
 license={ text="MIT" }

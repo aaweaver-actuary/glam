@@ -15,10 +15,12 @@ class BinomialLogLikelihoodCalculator:
 
     @property
     def y(self) -> pd.Series:
+        """Return the response variable."""
         return pd.Series(self._y, index=self._y.index, name="y")
 
     @property
     def yhat_proba(self) -> pd.Series:
+        """Return the predicted probability of the positive class."""
         return (
             pd.Series(self._yhat_proba, index=self.y.index, name="yhat_proba")
             .replace(0, 1e-6)

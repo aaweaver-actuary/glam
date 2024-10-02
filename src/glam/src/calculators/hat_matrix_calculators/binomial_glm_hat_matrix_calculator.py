@@ -1,3 +1,5 @@
+"""Define a concrete implementation of the BaseHatMatrixCalculator for the binomial GLM."""
+
 import pandas as pd
 import numpy as np
 from glam.src.calculators.hat_matrix_calculators.base_hat_matrix_calculator import (
@@ -6,12 +8,15 @@ from glam.src.calculators.hat_matrix_calculators.base_hat_matrix_calculator impo
 
 
 class BinomialGlmHatMatrixCalculator(BaseHatMatrixCalculator):
+    """Define a concrete implementation of the BaseHatMatrixCalculator for the binomial GLM."""
+
     def __init__(self, X: pd.DataFrame, yhat_proba: pd.Series):
         self._X = X
         self._yhat_proba = yhat_proba
 
     @property
     def X(self) -> np.ndarray:
+        """Return the feature matrix."""
         return self._X.to_numpy()
 
     @property

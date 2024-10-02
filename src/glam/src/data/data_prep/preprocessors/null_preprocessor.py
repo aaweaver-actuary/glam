@@ -1,7 +1,10 @@
+"""Implement the BaseModelFitter protocol to fit a GLM model using the statsmodels library."""
+
 import pandas as pd
 from glam.src.data.data_prep.preprocessors.base_preprocessor import BasePreprocessor
 
 __all__ = ["NullPreprocessor"]
+
 
 class NullPreprocessor:
     """Null implementation for preprocessing data.
@@ -18,6 +21,7 @@ class NullPreprocessor:
         return self._df
 
     def new(self) -> BasePreprocessor:
+        """Return a new instance of the preprocessor."""
         return NullPreprocessor(self.df)
 
     def run(self) -> pd.DataFrame:

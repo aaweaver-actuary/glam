@@ -1,7 +1,8 @@
 """Concrete implementation of the GLM result functionality using the statsmodels library."""
+
 from __future__ import annotations
 import pandas as pd
-from statsmodels.genmod.generalized_linear_model import (
+from statsmodels.genmod.generalized_linear_model import (  # type: ignore
     GLMResults as StatsmodelsGLMResults,
 )
 

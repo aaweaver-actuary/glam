@@ -2,10 +2,7 @@ from glam.src.calculators.degrees_of_freedom_calculators.base_degrees_of_freedom
     BaseDegreesOfFreedomCalculator,
 )
 from glam.src.calculators.degrees_of_freedom_calculators.degrees_of_freedom_calculator import (
-    DegreesOfFreedomCalculator,
+    StatsmodelsGlmDegreesOfFreedomCalculator,
 )
 
-__all__ = [
-    "BaseDegreesOfFreedomCalculator",
-    "DegreesOfFreedomCalculator",
-]
+__all__ = ["BaseDegreesOfFreedomCalculator", "DegreesOfFreedomCalculator"]

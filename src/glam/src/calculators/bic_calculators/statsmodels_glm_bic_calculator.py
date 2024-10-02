@@ -1,7 +1,7 @@
 """Concrete implementation of the BaseBicCalculator for GLMs using the statsmodels library."""
 
 import pandas as pd
-import statsmodels.api as sm
+import statsmodels.api as sm  # type: ignore
 
 __all__ = ["StatsmodelsGlmBicCalculator"]
 
@@ -14,6 +14,7 @@ class StatsmodelsGlmBicCalculator:
 
     @property
     def fitted_model(self) -> pd.Series:
+        """Return the fitted model object."""
         return self._fitted_model
 
     def calculate(self) -> float:

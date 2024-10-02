@@ -4,11 +4,11 @@ This module implements the StatsmodelsFormulaGlmFitter class, which is a concret
 """
 
 from __future__ import annotations
-import statsmodels
-import statsmodels.formula.api as smf
+import statsmodels  # type: ignore
+import statsmodels.formula.api as smf  # type: ignore
 import pandas as pd
 
-from glam.src.fitted_model.base_fitted_model import BaseFittedModel
+from glam.src.fitted_model.statsmodels_fitted_glm import StatsmodelsFittedGlm
 from glam.src.enums import ModelTask
 
 
@@ -33,7 +33,7 @@ class StatsmodelsFormulaGlmFitter:
 
     def __init__(
         self,
-        fitted_model: BaseFittedModel | None = None,
+        fitted_model: StatsmodelsFittedGlm | None = None,
         task: ModelTask = ModelTask.CLASSIFICATION,
     ):
         self._fitted_model = fitted_model
@@ -46,12 +46,12 @@ class StatsmodelsFormulaGlmFitter:
         return self.__repr__()
 
     @property
-    def fitted_model(self) -> BaseFittedModel | None:
+    def fitted_model(self) -> StatsmodelsFittedGlm | None:
         """Return the fitted model, or None if the model has not been fitted yet."""
         return self._fitted_model
 
     @fitted_model.setter
-    def fitted_model(self, fitted_model: BaseFittedModel) -> None:
+    def fitted_model(self, fitted_model: StatsmodelsFittedGlm) -> None:
         """Set the fitted model."""
         self._fitted_model = fitted_model
 
@@ -62,9 +62,9 @@ class StatsmodelsFormulaGlmFitter:
 
     def _fit_classifier(
         self, formula: str, X: pd.DataFrame, y: pd.Series
-    ) -> BaseFittedModel:
+    ) -> StatsmodelsFittedGlm:
         """Fit a classifier using the formula and data."""
-        from statsmodels.genmod.families.family import Binomial
+        from statsmodels.genmod.families.family import Binomial  # type: ignore
 
         model = smf.glm(
             formula=formula, data=pd.concat([y, X], axis=1), family=Binomial()
@@ -73,9 +73,9 @@ class StatsmodelsFormulaGlmFitter:
 
     def _fit_regressor(
         self, formula: str, X: pd.DataFrame, y: pd.Series
-    ) -> BaseFittedModel:
+    ) -> StatsmodelsFittedGlm:
         """Fit a regressor using the formula and data."""
-        from statsmodels.genmod.families.family import Gamma
+        from statsmodels.genmod.families.family import Gamma  # type: ignore
 
         model = smf.glm(formula=formula, data=pd.concat([y, X], axis=1), family=Gamma())
         return model.fit()

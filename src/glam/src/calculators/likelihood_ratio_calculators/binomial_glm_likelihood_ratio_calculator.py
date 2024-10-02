@@ -1,9 +1,11 @@
+"""Define a concrete implementation of the BaseLikelihoodRatioCalculator for Binomial GLMs."""
+
 import pandas as pd
 
 from glam.src.calculators.loglikelihood_calculators.binomial_loglikelihood_calculator import (
     BinomialLogLikelihoodCalculator,
 )
-from scipy.stats import chi2
+from scipy.stats import chi2  # type: ignore
 
 __all__ = ["BinomialGlmLikelihoodRatioCalculator"]
 
@@ -33,22 +35,27 @@ class BinomialGlmLikelihoodRatioCalculator:
 
     @property
     def y(self) -> pd.Series:
+        """Return the response variable."""
         return self._y
 
     @property
     def yhat_proba(self) -> pd.Series:
+        """Return the predicted probability of the positive class."""
         return self._yhat_proba
 
     @property
     def yhat_proba_new(self) -> pd.Series:
+        """Return the predicted probability of the positive class calculated from the new model."""
         return self._yhat_proba_new
 
     @property
     def loglikelihood(self) -> pd.Series:
+        """Return the loglikelihood of the model."""
         return self._loglikelihood_calculator.calculate()
 
     @property
     def loglikelihood_new(self) -> pd.Series:
+        """Return the loglikelihood of the new model."""
         return self._loglikelihood_calculator_new.calculate()
 
     @property

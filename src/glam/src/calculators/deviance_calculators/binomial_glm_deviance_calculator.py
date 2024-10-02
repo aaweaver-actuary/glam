@@ -19,14 +19,17 @@ class BinomialGlmDevianceCalculator:
 
     @property
     def y(self) -> pd.Series:
+        """Return the response variable."""
         return self._y
 
     @property
     def yhat_proba(self) -> pd.Series:
+        """Return the predicted probability of the positive class."""
         return self._yhat_proba
 
     @property
     def loglikelihood(self) -> pd.Series:
+        """Return the loglikelihood of the model."""
         return self._loglikelihood_calculator.calculate()
 
     def calculate(self) -> float:

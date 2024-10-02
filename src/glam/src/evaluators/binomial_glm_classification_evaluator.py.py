@@ -1,15 +1,16 @@
-"""Concrete implementation of the classification model evaluator."""
+"""Define additional functionality for the ClassificationEvaluator in the case that the evaluator is a binary GLM classification model."""
 
 import pandas as pd
 from sklearn.metrics import roc_auc_score, roc_curve  # type: ignore
 
-from glam.src.fitted_model.base_fitted_model import BaseFittedModel
+from glam.src.fitted_model.statsmodels_fitted_glm import StatsmodelsFittedGlm
 from glam.src.data.base_model_data import BaseModelData
+from glam.src.evaluators.classification_evaluator import ClassificationEvaluator
 
-__all__ = ["ClassificationEvaluator"]
+__all__ = ["GlmClassificationEvaluator"]
 
 
-class ClassificationEvaluator:
+class GlmClassificationEvaluator(ClassificationEvaluator):
     """Concrete implementation of the classification model evaluator.
 
     Attributes
@@ -54,6 +55,10 @@ class ClassificationEvaluator:
         The ROC AUC of the model.
     roc_curve : tuple
         The ROC curve of the model.
+    aic : float
+        The AIC of the model.
+    deviance : float
+        The deviance of the model.
 
     Methods
     -------
@@ -71,7 +76,7 @@ class ClassificationEvaluator:
         Evaluate the classification models.
     """
 
-    def __init__(self, data: BaseModelData, model: BaseFittedModel) -> None:
+    def __init__(self, data: BaseModelData, model: StatsmodelsFittedGlm) -> None:
         self._data = data
         self._model = model
 
@@ -89,9 +94,9 @@ class ClassificationEvaluator:
         return self._data
 
     @property
-    def model(self) -> BaseFittedModel:
+    def model(self) -> StatsmodelsFittedGlm:
         """Return the fitted model object."""
-        return self._model
+        return self._model  # type: ignore
 
     @property
     def X(self) -> pd.DataFrame:
@@ -193,6 +198,16 @@ class ClassificationEvaluator:
         """Return the ROC curve of the model."""
         return roc_curve(self.y, self.yhat_proba)
 
+    @property
+    def aic(self) -> float:
+        """Return the AIC of the model."""
+        return self.model.model.aic
+
+    @property
+    def deviance(self) -> float:
+        """Return the deviance of the model."""
+        return self.model.model.deviance
+
     def evaluate(self) -> None:
         """Evaluate the classification models."""
         import logging
@@ -202,3 +217,5 @@ class ClassificationEvaluator:
         logging.info(f"Recall: {self.recall}")
         logging.info(f"F1 Score: {self.f1_score}")
         logging.info(f"ROC AUC: {self.roc_auc}")
+        logging.info(f"AIC: {self.aic}")
+        logging.info(f"Deviance: {self.deviance}")

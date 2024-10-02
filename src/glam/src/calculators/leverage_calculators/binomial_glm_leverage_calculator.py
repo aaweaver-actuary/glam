@@ -1,3 +1,7 @@
+"""Define a concrete implementation of the BaseLikelihoodRatioCalculator for Binomial GLMs."""
+
+from __future__ import annotations
+
 import pandas as pd
 import numpy as np
 
@@ -9,16 +13,20 @@ __all__ = ["BinomialGlmLeverageCalculator"]
 
 
 class BinomialGlmLeverageCalculator:
+    """Define a concrete implementation of the BaseLikelihoodRatioCalculator for Binomial GLMs."""
+
     def __init__(self, X: pd.DataFrame, yhat_proba: pd.Series):
         self._X = X
         self._yhat_proba = yhat_proba
 
     @property
     def X(self) -> pd.DataFrame:
+        """Return the feature matrix."""
         return self._X
 
     @property
     def yhat_proba(self) -> pd.Series:
+        """Return the predicted probability of the positive class."""
         return self._yhat_proba
 
     @property

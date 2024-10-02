@@ -1,13 +1,15 @@
+"""Base class for GLM analysis."""
+
 from __future__ import annotations
 from concurrent.futures import ProcessPoolExecutor
 from abc import abstractmethod
 import pandas as pd
-
+import logging
 from glam.src.data.base_model_data import BaseModelData
-from glam.src.fitters.base_model_fitter import BaseModelFitter
+from glam.src.fitters.statsmodels_formula_glm_fitter import StatsmodelsFormulaGlmFitter
 from glam.src.data.data_prep import BaseDataSplitter, BasePreprocessor
 from glam.src.model_list.base_model_list import BaseModelList
-from glam.src.fitted_model.base_fitted_model import BaseFittedModel
+from glam.src.fitted_model.statsmodels_fitted_glm import StatsmodelsFittedGlm
 from glam.src.enums.model_task import ModelTask
 from glam.src.calculators.residual_calculators.base_residual_calculator import (
     BaseResidualCalculator,
@@ -23,35 +25,38 @@ class BaseGlmAnalysis(BaseAnalysis):
     def __init__(
         self,
         data: BaseModelData,
-        fitter: BaseModelFitter | None = None,
+        fitter: StatsmodelsFormulaGlmFitter | None = None,
         models: BaseModelList | None = None,
         features: list[str] | None = None,
         interactions: list[str] | None = None,
-        fitted_model: BaseFittedModel | None = None,
+        fitted_model: StatsmodelsFittedGlm | None = None,
         splitter: BaseDataSplitter | None = None,
         preprocessor: BasePreprocessor | None = None,
         task: ModelTask = ModelTask.CLASSIFICATION,
     ):
-        super().__init__(
-            data,
-            fitter,
-            models,
-            features,
-            interactions,
-            fitted_model,
-            splitter,
-            preprocessor,
-            task,
-        )
+        self._data = data
+        self._fitter = fitter  # type: StatsmodelsFormulaGlmFitter | None
+        self._models = models
+        self._features = features
+        self._interactions = interactions
+        self._fitted_model = fitted_model
+        self._splitter = splitter
+        self._preprocessor = preprocessor
+        self._task = task
 
     @abstractmethod
     def __repr__(self):
-        pass
+        """Return a string representation of the object."""
 
     @property
     def feature_formula(self) -> str:
         """Return the formula for the model."""
         return " + ".join(self.features)
+
+    @property
+    def fitter(self) -> StatsmodelsFormulaGlmFitter | None:  # type: ignore
+        """Override the BaseAnalysis class to return the fitter object for fitting Statsmodels GLMs."""
+        return self._fitter
 
     @property
     def linear_formula(self) -> str:
@@ -60,8 +65,11 @@ class BaseGlmAnalysis(BaseAnalysis):
 
     def _fit_single_fold(
         self, X_train: pd.DataFrame, y_train: pd.Series
-    ) -> BaseFittedModel:
+    ) -> StatsmodelsFittedGlm:
         """Fits a single model for a cross-validation fold."""
+        if self.fitter is None:
+            raise ValueError("No fitter has been set for the model.")
+
         return self.fitter.fit(self.linear_formula, X_train, y_train)
 
     def fit(self, parallel: bool = False) -> None:
@@ -74,7 +82,10 @@ class BaseGlmAnalysis(BaseAnalysis):
                     for X, y, _, _ in self.X_y_generator
                 ]
                 for model in models:
-                    self.models.add_model(model.result())
+                    if self.models is not None:
+                        self.models.add_model(model.result())
+                    else:
+                        raise ValueError("No model list has been set for the analysis.")
         else:
             for _ in self.fit_cv():
                 pass
@@ -104,52 +115,63 @@ class BaseGlmAnalysis(BaseAnalysis):
 
     @property
     def endog(self) -> pd.Series:
+        """Return the endogenous variable."""
         raise NotImplementedError
 
     @property
     def exog(self) -> pd.DataFrame:
+        """Return the exogenous variables."""
         raise NotImplementedError
 
     @property
     def residual_calculator(self) -> BaseResidualCalculator:
+        """Return the residual calculator object."""
         raise NotImplementedError
 
     @property
     def deviance_residuals(self) -> pd.Series:
+        """Return the deviance residuals."""
         return self.residual_calculator.deviance_residuals()
 
     @property
     def pearson_residuals(self) -> pd.Series:
+        """Return the Pearson residuals."""
         return self.residual_calculator.pearson_residuals(std=False)
 
     @property
     def std_pearson_residuals(self) -> pd.Series:
+        """Return the standardized Pearson residuals."""
         return self.residual_calculator.pearson_residuals(std=True)
 
     def partial_residuals(self, feature: str) -> pd.Series:
+        """Return the partial residuals for a given feature."""
         return self.residual_calculator.partial_residuals(feature)
 
     @property
     def aic(self) -> float:
+        """Return the AIC of the model."""
         raise NotImplementedError
 
     @property
     def bic(self) -> float:
+        """Return the BIC of the model."""
         raise NotImplementedError
 
     @property
     def deviance(self) -> float:
+        """Return the deviance of the model."""
         raise NotImplementedError
 
     @property
     def leverage(self) -> pd.Series:
+        """Return the leverage of the model."""
         raise NotImplementedError
 
     @abstractmethod
     def evaluate_new_feature(
         self, new_feature: str, parallel: bool = False
     ) -> pd.DataFrame:
-        pass
+        """Evaluate the addition of a new feature to the model."""
 
     def evaluate_new_features(
         self,
@@ -157,6 +179,7 @@ class BaseGlmAnalysis(BaseAnalysis):
         parallel: bool = False,
         p_value_cutoff: float = 0.05,
     ) -> pd.DataFrame:
+        """Evaluate the addition of new features to the model."""
         if new_features is None:
             new_features = self.remaining_features
 
@@ -183,7 +206,7 @@ class BaseGlmAnalysis(BaseAnalysis):
                     pd.Series(p_value).astype(float).ge(float(p_value_cutoff)).sum()
                 )
                 if n_to_remove > 0:
-                    print(
+                    logging.info(
                         f"Feature evaluation has removed {n_to_remove} features with p-values greater than {p_value_cutoff:.1%}."
                     )
                 output = (
@@ -205,6 +228,5 @@ class BaseGlmAnalysis(BaseAnalysis):
                 ]
         else:
             return pd.concat(
-                [df for df in self._generate_new_feature_eval(new_features, parallel)],
-                axis=1,
+                list(self._generate_new_feature_eval(new_features, parallel)), axis=1
             ).T

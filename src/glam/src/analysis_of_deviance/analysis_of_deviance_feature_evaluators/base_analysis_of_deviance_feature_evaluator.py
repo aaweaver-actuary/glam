@@ -1,32 +1,38 @@
 """Concrete implementation of the base feature evaluator using analysis of deviance to evaluate whether a new feature improves a model."""
 
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from scipy.stats import chi2
+from scipy.stats import chi2  # type: ignore
 import pandas as pd
-from glam.analysis.base_analysis import BaseAnalysis
-from glam.src.calculators.deviance_calculators.base_deviance_calculator import (
-    BaseDevianceCalculator,
+from glam.analysis.base_glm_analysis import BaseGlmAnalysis
+from glam.src.calculators.deviance_calculators.statsmodels_glm_deviance_calculator import (
+    StatsmodelsGlmDevianceCalculator,
 )
-from glam.src.calculators.degrees_of_freedom_calculators.base_degrees_of_freedom_calculator import (
-    BaseDegreesOfFreedomCalculator,
+from glam.src.calculators.aic_calculators.statsmodels_glm_aic_calculator import (
+    StatsmodelsGlmAicCalculator,
 )
-from glam.src.calculators.aic_calculators.base_aic_calculator import BaseAicCalculator
-from glam.src.calculators.bic_calculators.base_bic_calculator import BaseBicCalculator
+from glam.src.calculators.bic_calculators.statsmodels_glm_bic_calculator import (
+    StatsmodelsGlmBicCalculator,
+)
+from glam.src.calculators.degrees_of_freedom_calculators.degrees_of_freedom_calculator import (
+    StatsmodelsGlmDegreesOfFreedomCalculator,
+)
 import warnings
-from statsmodels.tools.sm_exceptions import PerfectSeparationWarning
+from statsmodels.tools.sm_exceptions import PerfectSeparationWarning  # type: ignore
 
 
-class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
+class BaseGlmAnalysisOfDevianceFeatureEvaluator(ABC):
     """Concrete implementation of the base feature evaluator using analysis of deviance to evaluate whether a new feature improves a model."""
 
     def __init__(
         self,
-        current_analysis: BaseAnalysis,
+        current_analysis: BaseGlmAnalysis,
         new_feature: str,
-        deviance_calculator: BaseDevianceCalculator,
-        aic_calculator: BaseAicCalculator,
-        bic_calculator: BaseBicCalculator,
-        degrees_of_freedom_calculator: BaseDegreesOfFreedomCalculator,
+        deviance_calculator: StatsmodelsGlmDevianceCalculator | None = None,
+        aic_calculator: StatsmodelsGlmAicCalculator | None = None,
+        bic_calculator: StatsmodelsGlmBicCalculator | None = None,
+        degrees_of_freedom_calculator: StatsmodelsGlmDegreesOfFreedomCalculator
+        | None = None,
         parallel: bool = True,
     ):
         self._current_analysis = current_analysis
@@ -38,34 +44,38 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
         self._parallel = parallel
 
     @property
-    def current_analysis(self):
+    def current_analysis(self) -> BaseGlmAnalysis:
+        """Return the current analysis object."""
         return self._current_analysis
 
     @property
-    def new_feature(self):
+    def new_feature(self) -> str:
+        """Return the name of the new feature."""
         return self._new_feature
 
     @property
-    def parallel(self):
+    def parallel(self) -> bool:
+        """Return whether to use parallel processing."""
         return self._parallel
 
     @abstractmethod
-    def _get_deviance(self, analysis: BaseAnalysis) -> float:
-        pass
+    def _get_deviance(self, analysis: BaseGlmAnalysis) -> float:
+        """Return the deviance of the model."""
 
     @abstractmethod
-    def _get_aic(self, analysis: BaseAnalysis) -> float:
-        pass
+    def _get_aic(self, analysis: BaseGlmAnalysis) -> float:
+        """Return the AIC of the model."""
 
     @abstractmethod
-    def _get_bic(self, analysis: BaseAnalysis) -> float:
-        pass
+    def _get_bic(self, analysis: BaseGlmAnalysis) -> float:
+        """Return the BIC of the model."""
 
     @abstractmethod
-    def _get_degrees_of_freedom(self, analysis: BaseAnalysis) -> float:
-        pass
+    def _get_degrees_of_freedom(self, analysis: BaseGlmAnalysis) -> float:
+        """Return the degrees of freedom of the model."""
 
-    def _get_model_with_new_feature(self, analysis: BaseAnalysis) -> BaseAnalysis:
+    def _get_model_with_new_feature(self, analysis: BaseGlmAnalysis) -> BaseGlmAnalysis:
+        """Return a new model object with the new feature."""
         warnings.filterwarnings(
             "ignore", category=PerfectSeparationWarning, append=True
         )
@@ -85,8 +95,9 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
         return new_model
 
     def _get_p_value(
-        self, current_model: BaseAnalysis, new_model: BaseAnalysis
+        self, current_model: BaseGlmAnalysis, new_model: BaseGlmAnalysis
     ) -> float:
+        """Return the p-value of the new feature."""
         cur_deviance = self._get_deviance(current_model)
         new_deviance = self._get_deviance(new_model)
 
@@ -100,7 +111,6 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
 
     def evaluate_feature(self) -> pd.DataFrame:
         """Evaluate the new feature using analysis of deviance."""
-        # New model object with the new feature
         new_model = self._get_model_with_new_feature(self.current_analysis)
 
         deviance_current = self._get_deviance(self.current_analysis)
@@ -137,7 +147,7 @@ class BaseAnalysisOfDevianceFeatureEvaluator(ABC):
         outdf["AIC"] = outdf["AIC"].round(2)
         outdf["BIC"] = outdf["BIC"].round(2)
 
-        def format_p_value(x):
+        def format_p_value(x: float) -> str:
             if x is None:
                 return ""
             elif x < 0.001:

@@ -67,7 +67,7 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
         )
 
         self._data = data
-        self._fitter = fitter if fitter is not None else StatsmodelsFormulaGlmFitter()
+        self._fitter = fitter if fitter is not None else StatsmodelsFormulaGlmFitter()  # type: ignore
         self._models = models if models is not None else DefaultModelList()
         self._fitted_model = fitted_model
         self._features = features if features is not None else []
@@ -77,7 +77,7 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
             splitter if splitter is not None else TimeSeriesDataSplitter(data)
         )
         self._preprocessor = (
-            preprocessor if preprocessor is not None else DefaultPreprocessor(data)
+            preprocessor if preprocessor is not None else DefaultPreprocessor(data)  # type: ignore
         )
 
         self._task = task
@@ -127,6 +127,7 @@ class BinomialGlmAnalysis(BaseGlmAnalysis):
 
     @property
     def exog(self) -> pd.DataFrame:
+        """Return the exogenous variables."""
         return pd.DataFrame(
             self.models.model.model.data.exog, columns=["Intercept", *self.features]
         )

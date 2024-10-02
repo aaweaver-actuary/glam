@@ -13,4 +13,6 @@ class BaseFeatureEvaluator(Protocol):
     input and returns a DataFrame with the results of evaluating the feature.
     """
 
-    def evaluate_feature(self, new_feature: str) -> pd.DataFrame: ...
+    def evaluate_feature(self, new_feature: str) -> pd.DataFrame:
+        """Evaluate a potential new feature to add to the model."""
+        ...

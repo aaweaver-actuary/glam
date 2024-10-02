@@ -1,9 +1,11 @@
+"""Define the base class for analyses."""
+
 from __future__ import annotations
 from concurrent.futures import ProcessPoolExecutor
 import copy
 from abc import ABC, abstractmethod
 import pandas as pd
-from typing import Generator
+from typing import Generator, Optional
 
 from glam.src.data.base_model_data import BaseModelData
 from glam.src.fitters.base_model_fitter import BaseModelFitter
@@ -24,40 +26,40 @@ class BaseAnalysis(ABC):
     def __init__(
         self,
         data: BaseModelData,
-        fitter: BaseModelFitter | None = None,
-        models: BaseModelList | None = None,
-        features: list[str] | None = None,
-        interactions: list[str] | None = None,
-        fitted_model: BaseFittedModel | None = None,
-        splitter: BaseDataSplitter | None = None,
-        preprocessor: BasePreprocessor | None = None,
+        fitter: Optional[BaseModelFitter] = None,
+        models: Optional[BaseModelList] = None,
+        features: Optional[list[str]] = None,
+        interactions: Optional[list[str]] = None,
+        fitted_model: Optional[BaseFittedModel] = None,
+        splitter: Optional[BaseDataSplitter] = None,
+        preprocessor: Optional[BasePreprocessor] = None,
         task: ModelTask = ModelTask.CLASSIFICATION,
     ):
-        self._data = data
-        self._fitter = fitter
-        self._models = models
-        self._fitted_model = fitted_model
-        self._features = features
-        self._interactions = interactions
-        self._splitter = splitter
-        self._preprocessor = preprocessor
-        self._task = task
+        self._data: BaseModelData = data
+        self._fitter: Optional[BaseModelFitter] = fitter
+        self._models: Optional[BaseModelList] = models
+        self._fitted_model: Optional[BaseFittedModel] = fitted_model
+        self._features: Optional[list[str]] = features
+        self._interactions: Optional[list[str]] = interactions
+        self._splitter: Optional[BaseDataSplitter] = splitter
+        self._preprocessor: Optional[BasePreprocessor] = preprocessor
+        self._task: ModelTask = task
 
     @abstractmethod
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return the string representation of the class."""
-        pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the string representation of the class."""
         return self.__repr__()
 
-    def copy(self):
-        ""
+    def copy(self) -> BaseAnalysis:
+        """Return a deep copy of the analysis."""
         return copy.deepcopy(self)
 
     @classmethod
-    def from_self(cls, self) -> "BaseAnalysis":
+    def from_self(cls, self: BaseAnalysis) -> BaseAnalysis:
+        """Create a new instance of the class from an existing instance."""
         return cls(
             data=self._data,
             fitter=self._fitter,
@@ -72,65 +74,72 @@ class BaseAnalysis(ABC):
 
     @property
     def data(self) -> BaseModelData:
+        """Return the ModelData object containing the data used to fit the model."""
         return self._data
 
     @data.setter
     def data(self, data: BaseModelData) -> None:
+        """Update the data object."""
         self._data = data
 
     @property
-    def X_y_generator(self) -> tuple:
-        for X_train, y_train, X_test, y_test in self.splitter.X_y_generator:
+    def X_y_generator(
+        self,
+    ) -> Generator[tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series], None, None]:
+        """Return a generator that yields the training and testing data for each cross-validation fold."""
+        if self._splitter is None:
+            raise ValueError("Splitter is not defined.")
+        for X_train, y_train, X_test, y_test in self._splitter.X_y_generator:
             yield X_train[self.features], y_train, X_test[self.features], y_test
 
     @property
-    def fitter(self) -> BaseModelFitter:
+    def fitter(self) -> Optional[BaseModelFitter]:
+        """Return the fitter object."""
         return self._fitter
 
     @property
-    def splitter(self) -> BaseDataSplitter:
+    def splitter(self) -> Optional[BaseDataSplitter]:
+        """Return the splitter object."""
         return self._splitter
 
     @property
-    def preproceessor(self) -> BasePreprocessor:
+    def preprocessor(self) -> Optional[BasePreprocessor]:
+        """Return the preprocessor object."""
         return self._preprocessor
 
     @property
-    def fitted_model(self) -> BaseFittedModel:
+    def fitted_model(self) -> Optional[BaseFittedModel]:
+        """Return the fitted model."""
         return self._fitted_model
 
     @property
-    def models(self) -> BaseModelList:
+    def models(self) -> Optional[BaseModelList]:
+        """Return the list of fitted models."""
         return self._models
 
     @models.setter
     def models(self, models: BaseModelList) -> None:
+        """Update the list of fitted models."""
         self._models = models
 
-    def add_model(self, model) -> None:
-        current_models = self.models
-        current_models.add_model(model)
-        self.models = current_models
+    def add_model(self, model: BaseFittedModel) -> None:
+        """Add the model to the list of fitted models."""
+        if self._models is None:
+            raise ValueError("Model list is not defined.")
+        self._models.add_model(model)
 
-    def get_model(self, index: int):
-        return self.models.model_lookup[index]
+    def get_model(self, index: int) -> BaseFittedModel:
+        """Get a specific model from the list of fitted models."""
+        if self._models is None:
+            raise ValueError("Model list is not defined.")
+        return self._models.model_lookup[index]
 
     @property
     def features(self) -> list[str]:
         """Return the list of features used to fit the model."""
-        try:
-            return self._features
-        except KeyError:
-            try:
-                output = []
-                for g in self._features:
-                    for f in self.data.feature_names:
-                        if f.startswith(g):
-                            output.append(f)
-                return output
-
-            except KeyError:
-                raise KeyError
+        if self._features is None:
+            raise ValueError("Features are not defined.")
+        return self._features
 
     @features.setter
     def features(self, features: list[str]) -> None:
@@ -138,46 +147,26 @@ class BaseAnalysis(ABC):
 
     def add_feature(self, feature: str) -> None:
         """Add the feature to the list of features."""
-        cur_features = self.features
-        is_not_already_included = feature not in cur_features
-        is_available_in_data = feature in self.data.feature_names
-        if is_not_already_included and is_available_in_data:
-            self.features = cur_features + [feature]
+        if feature not in self.features and feature in self.data.feature_names:
+            self.features = [*self.features, feature]
 
-    def add_interaction(self, *args: tuple[str]) -> None:
+    def add_interaction(self, *args: str) -> None:
         """Add an interaction term by multiplying the features together."""
         interaction_name = "___".join(args)
-        if interaction_name in self.features:
-            interaction_feature = self.data.df[interaction_name].copy()
-        else:
+        if interaction_name not in self.features:
             interaction_feature = self.data.df[args[0]].copy()
-            for i, f in enumerate(args[1:]):
-                # Ensure that the feature is available at all in the data
+            for f in args[1:]:
                 if f not in self.data.feature_names:
-                    continue
-
-                # Ensure that the feature is in the list of features
-                # before adding it to an interaction term
-                if f not in self.features:
-                    self.add_feature(f)
-
-                # Add the current feature to the interaction term
-                interaction_feature *= self.data.df[f].copy()
-
-        if interaction_name in self.data.feature_names:
-            self.data.df[interaction_name] = interaction_feature
-        else:
-            interaction_feature.name = interaction_name
+                    raise ValueError(f"Feature {f} not found in data.")
+                interaction_feature *= self.data.df[f]
             self.data.add_feature(interaction_name, interaction_feature)
-
-        self.add_feature(interaction_name)
+            self.add_feature(interaction_name)
 
     def drop_feature(self, feature: str) -> None:
         """Drop the feature from the list of features."""
-        new_features = [f for f in self.features if f != feature]
-        self.features = new_features
+        self.features = [f for f in self.features if f != feature]
 
-    def drop_features(self, *features) -> None:
+    def drop_features(self, *features: str) -> None:
         """Drop the features from the list of features."""
         for f in features:
             self.drop_feature(f)
@@ -200,7 +189,7 @@ class BaseAnalysis(ABC):
     @property
     def cv_list(self) -> list[int]:
         """Return the list of unique cross-validation folds, excluding the first."""
-        return self.data.cv.drop_duplicates().sort_values().to_list()[1:]
+        return self.data.cv.drop_duplicates().sort_values().tolist()[1:]
 
     @property
     def unanalyzed(self) -> list[str]:
@@ -218,47 +207,30 @@ class BaseAnalysis(ABC):
         return [
             f
             for f in self.features
-            if ((self.data.df[f].dtype == object) or (self.data.df[f].dtype == str))
+            if self.data.df[f].dtype == object or self.data.df[f].dtype == "str"
         ]
 
     @property
     def numeric_features(self) -> list[str]:
         """Return the list of numeric features."""
-        return [
-            f
-            for f in self.features
-            if ((self.data.df[f].dtype == float) or (self.data.df[f].dtype == int))
-        ]
+        return [f for f in self.features if self.data.df[f].dtype in ["float", "int"]]
 
     @abstractmethod
     def _fit_single_fold(
         self, X_train: pd.DataFrame, y_train: pd.Series
     ) -> BaseFittedModel:
         """Fits a single model for a cross-validation fold."""
-        pass
 
-    def convert_1_0_integers(self, x: pd.Series, offset: float = 1e-8) -> pd.DataFrame:
+    def convert_1_0_integers(self, x: pd.Series, offset: float = 1e-8) -> pd.Series:
         """Convert the response variable to be 1s and 0s."""
         if x.dtype != float:
-            n_unique = x.nunique()
-            unique = x.unique()
-
-            col_has_only_0s_and_1s = False
-            if n_unique == 2:
-                col_has_only_0s_and_1s = (unique[0] in [0, 1]) and (unique[1] in [0, 1])
-            elif n_unique == 1:
-                col_has_only_0s_and_1s = unique[0] in [0, 1]
-            else:
-                col_has_only_0s_and_1s = False
-
-            if col_has_only_0s_and_1s:
+            unique_values = x.unique()
+            if set(unique_values).issubset({0, 1}):
                 return x.replace({0: 0.0 + offset, 1: 1.0 - offset})
-            else:
-                return x
-        else:
-            return x
+        return x
 
     def convert_data_to_floats(self) -> None:
+        """Convert the data to floats."""
         for col in self.features:
             self.data.df[col] = self.convert_1_0_integers(self.data.df[col])
 
@@ -266,20 +238,24 @@ class BaseAnalysis(ABC):
         """Fit/refit the model for each cross-validation fold using the current set of features."""
         for X_train, y_train, _, _ in self.X_y_generator:
             model = self._fit_single_fold(X_train, y_train)
-            self.models.add_model(model)
-            yield self.models
+            if self._models is None:
+                raise ValueError("Model list is not defined.")
+            self._models.add_model(model)
+            yield self._models
 
     def fit(self, parallel: bool = False) -> None:
         """Run the generator to fit the model for each cross-validation fold."""
         self.convert_data_to_floats()
         if parallel:
             with ProcessPoolExecutor() as executor:
-                models = [
+                futures = [
                     executor.submit(self._fit_single_fold, X, y)
                     for X, y, _, _ in self.X_y_generator
                 ]
-                for model in models:
-                    self.models.add_model(model.result())
+                for future in futures:
+                    if self._models is None:
+                        raise ValueError("Model list is not defined.")
+                    self._models.add_model(future.result())
         else:
             for _ in self.fit_cv():
                 pass
@@ -290,11 +266,11 @@ class BaseAnalysis(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def yhat(self, X: pd.DataFrame | None = None) -> pd.Series:
+    def yhat(self, X: Optional[pd.DataFrame] = None) -> pd.Series:
         """Return the predicted class."""
 
     @abstractmethod
-    def yhat_proba(self, X: pd.DataFrame | None = None) -> pd.Series:
+    def yhat_proba(self, X: Optional[pd.DataFrame] = None) -> pd.Series:
         """Return the predicted probability of the positive class."""
 
     @property
@@ -306,14 +282,14 @@ class BaseAnalysis(ABC):
     def evaluate_new_feature(
         self, new_feature: str, parallel: bool = False
     ) -> pd.DataFrame:
-        pass
+        """Return an evaluation of a potential new feature."""
 
     def _generate_new_feature_eval(
         self, new_features: list[str], parallel: bool = False
-    ) -> Generator[pd.DataFrame, None, None]:
+    ) -> Generator[pd.Series, None, None]:
         for f in new_features:
             yield self.evaluate_new_feature(f, parallel).iloc[0]
 
     @abstractmethod
     def evaluate_new_features(self) -> pd.DataFrame:
-        pass
+        """Evaluate the potential new features."""

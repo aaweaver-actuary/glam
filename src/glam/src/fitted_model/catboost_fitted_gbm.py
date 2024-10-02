@@ -1,10 +1,12 @@
+"""Concrete implementation of the GBM result functionality using the Catboost library."""
+
 from __future__ import annotations
 
-# from catboost import CatBoostClassifier, CatBoostRegressor
+from typing import Optional, Union
 import pandas as pd
+from catboost import CatBoostClassifier, CatBoostRegressor  # type: ignore
 from glam.src.data.base_model_data import BaseModelData
 from glam.src.enums import ModelType
-from glam.src.fitted_model.base_fitted_model import BaseFittedModel
 
 
 class CatboostFittedGbm:
@@ -16,7 +18,7 @@ class CatboostFittedGbm:
         Whether the model has been fitted.
     data : BaseModelData
         The ModelData object containing the data used to fit the model.
-    model : catboost.CatBoostClassifier | catboost.CatBoostRegressor
+    model : CatBoostClassifier | CatBoostRegressor
         The fitted model object.
     model_type : ModelType
         The type of the model. See the `ModelType` enum for possible values. This
@@ -35,7 +37,7 @@ class CatboostFittedGbm:
 
     Methods
     -------
-    **__init__(data: BaseModelData, model: BaseFittedModel | None) -> None**
+    **__init__(data: BaseModelData, model: Optional[BaseFittedModel]) -> None**
 
         Initialize the object with the given data and model.
     **__repr__() -> str**
@@ -44,29 +46,35 @@ class CatboostFittedGbm:
     **__str__() -> str**
 
         Return a string representation of the object.
-    **yhat(X: pd.DataFrame | None = None) -> pd.Series**
+    **yhat(X: Optional[pd.DataFrame] = None) -> pd.Series**
 
         Return the predicted response variable. For a binary classification model, this is the predicted class.
-    **yhat_proba(X: pd.DataFrame | None = None) -> pd.Series**
+    **yhat_proba(X: Optional[pd.DataFrame] = None) -> pd.Series**
 
         Return the predicted response variable. For a binary classification model, this is the probability of the positive class.
     """
 
-    def __init__(self, data: BaseModelData, model: BaseFittedModel | None) -> None:
-        self._data = data
-        self._model = model if model is not None else None
-        self._model_type = ModelType.GLM
+    def __init__(
+        self,
+        data: BaseModelData,
+        model: Optional[Union[CatBoostClassifier, CatBoostRegressor]],
+    ) -> None:
+        self._data: BaseModelData = data
+        self._model: Optional[Union[CatBoostClassifier, CatBoostRegressor]] = model
+        self._model_type: ModelType = ModelType.GLM
 
     def __repr__(self) -> str:
+        """Return a string representation of the object."""
         return f"{self.__class__.__name__}(model_type={self.model_type}, fitted={self.is_fitted})"
 
     def __str__(self) -> str:
+        """Return a string representation of the object."""
         return self.__repr__()
 
     @property
     def is_fitted(self) -> bool:
         """Return whether the model has been fitted."""
-        return self.model is not None
+        return self._model is not None
 
     @property
     def data(self) -> BaseModelData:
@@ -74,7 +82,7 @@ class CatboostFittedGbm:
         return self._data
 
     @property
-    def model(self) -> CatBoostClassifier | CatBoostRegressor:
+    def model(self) -> Optional[Union[CatBoostClassifier, CatBoostRegressor]]:
         """Return the fitted model object."""
         return self._model
 
@@ -82,14 +90,16 @@ class CatboostFittedGbm:
     def model_type(self) -> ModelType:
         """Return the type of the model.
 
-        See the `ModelType` enum for possible values."""
+        See the `ModelType` enum for possible values.
+        """
         return self._model_type
 
     @property
     def coefficients(self) -> dict[str, float]:
         """Return the coefficients of the model besides the intercept (if present) in a dictionary."""
-
-        return self.model.get_feature_importance()
+        if self._model is None:
+            return {}
+        return dict(zip(self.data.X.columns, self._model.get_feature_importance()))
 
     @property
     def features(self) -> list[str]:
@@ -105,15 +115,18 @@ class CatboostFittedGbm:
     def mu(self) -> pd.Series:
         """Return the expected value of the response variable.
 
-        For a binary classification model, this is the probability of the positive class."""
-        return pd.Series(self.model.predict(self.data.X), name="mu")
+        For a binary classification model, this is the probability of the positive class.
+        """
+        if self._model is None:
+            raise ValueError("The model is not fitted yet.")
+        return pd.Series(self._model.predict(self.data.X), name="mu")
 
     @property
     def residuals(self) -> pd.Series:
         """Return the residuals of the model."""
         return pd.Series(self.mu - self.data.y, name="residuals")
 
-    def yhat(self, X: pd.DataFrame | None = None) -> pd.Series:
+    def yhat(self, X: Optional[pd.DataFrame] = None) -> pd.Series:
         """Return the predicted response variable.
 
         For a binary classification model, this is the predicted class.
@@ -138,11 +151,13 @@ class CatboostFittedGbm:
         3    0
         4    1
         """
+        if self._model is None:
+            raise ValueError("The model is not fitted yet.")
         if X is None:
             X = self.data.X
-        return pd.Series(self.model.predict(X), name="yhat").round(0)
+        return pd.Series(self._model.predict(X), name="yhat").round(0)
 
-    def yhat_proba(self, X: pd.DataFrame | None = None) -> pd.Series:
+    def yhat_proba(self, X: Optional[pd.DataFrame] = None) -> pd.Series:
         """Return the predicted response variable.
 
         For a binary classification model, this is the probability of the positive class.
@@ -167,6 +182,8 @@ class CatboostFittedGbm:
         3    0.1
         4    0.7
         """
+        if self._model is None:
+            raise ValueError("The model is not fitted yet.")
         if X is None:
             X = self.data.X
-        return pd.Series(self.model.predict(X), name="yhat_proba")
+        return pd.Series(self._model.predict_proba(X)[:, 1], name="yhat_proba")

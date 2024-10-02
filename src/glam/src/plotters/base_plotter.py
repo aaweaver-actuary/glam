@@ -9,4 +9,3 @@ class BasePlotter(ABC):
     @abstractmethod
     def cat_plot(self) -> GlamPlot:
         """Create a categorical plot."""
-        pass

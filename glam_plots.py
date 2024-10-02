@@ -15,16 +15,16 @@ def categorical_plot(model, data, test_feature="business_category"):
             model.cv,    
             model.X,
         ], axis=1)
-    df = df.loc[df['fold'] >= 10]
+    df = df.loc[df["fold"] >= 10]
     df[test_feature] = data.df[test_feature]
-    df['current_model'] = model.yhat_proba(df.drop(columns=[model.y.name, model.cv.name, test_feature]))
-    df['test_model'] = model2.yhat_proba(df.drop(columns=[model.y.name, model.cv.name]))
+    df["current_model"] = model.yhat_proba(df.drop(columns=[model.y.name, model.cv.name, test_feature]))
+    df["test_model"] = model2.yhat_proba(df.drop(columns=[model.y.name, model.cv.name]))
 
-    count_by_level = df.groupby(test_feature).count()[['hit_count']].reset_index().rename(columns={'hit_count': 'count'})
+    count_by_level = df.groupby(test_feature).count()[["hit_count"]].reset_index().rename(columns={"hit_count": "count"})
 
     ave_by_level = (
         df.groupby(test_feature)
-        .mean()[['hit_count', 'current_model', 'test_model']]
+        .mean()[["hit_count", "current_model", "test_model"]]
         .reset_index()
         .set_index(test_feature)
         .join(
@@ -39,13 +39,13 @@ def categorical_plot(model, data, test_feature="business_category"):
     fig.add_trace(
         go.Bar(
             x=ave_by_level[test_feature],
-            y=ave_by_level['count'],
-            name='Count',
+            y=ave_by_level["count"],
+            name="Count",
             marker=dict(
-                color='gray',
+                color="gray",
                 opacity=0.5,
                 line=dict(
-                    color='black',
+                    color="black",
                     width=0.5
                 )
             ),
@@ -58,20 +58,20 @@ def categorical_plot(model, data, test_feature="business_category"):
     fig.add_trace(
         go.Scattergl(
             x=ave_by_level[test_feature],
-            y=ave_by_level['hit_count'],
-            mode='lines+markers',
-            name='Actual',
+            y=ave_by_level["hit_count"],
+            mode="lines+markers",
+            name="Actual",
             marker=dict(
                 size=10,
-                color='blue',
+                color="blue",
                 opacity=0.5,
                 line=dict(
-                    color='black',
+                    color="black",
                     width=0.5
                 )
             ),
             line=dict(
-                color='blue',
+                color="blue",
                 width=2
             ),
 
@@ -82,22 +82,22 @@ def categorical_plot(model, data, test_feature="business_category"):
     fig.add_trace(
         go.Scattergl(
             x=ave_by_level[test_feature],
-            y=ave_by_level['current_model'],
-            mode='lines+markers',
-            name='Current Model',
+            y=ave_by_level["current_model"],
+            mode="lines+markers",
+            name="Current Model",
             marker=dict(
                 size=10,
-                color='red',
+                color="red",
                 opacity=0.5,
                 line=dict(
-                    color='black',
+                    color="black",
                     width=0.5
                 )
             ),
             line=dict(
-                color='red',
+                color="red",
                 width=1.5,
-                dash='dashdot'
+                dash="dashdot"
             ),
         ),
             secondary_y=False
@@ -106,31 +106,31 @@ def categorical_plot(model, data, test_feature="business_category"):
     fig.add_trace(
         go.Scattergl(
             x=ave_by_level[test_feature],
-            y=ave_by_level['test_model'],
-            mode='lines+markers',
-            name='Test Model',
+            y=ave_by_level["test_model"],
+            mode="lines+markers",
+            name="Test Model",
             marker=dict(
                 size=7,
-                color='green',
+                color="green",
                 opacity=0.5,
                 line=dict(
-                    color='black',
+                    color="black",
                     width=0.5
                 )
             ),
             line=dict(
-                color='green',
+                color="green",
                 width=1.5,
-                dash='dashdot'
+                dash="dashdot"
             ),
         ),
             secondary_y=False
     )
 
     fig.update_layout(
-        title='Actual vs. Model Predictions',
+        title="Actual vs. Model Predictions",
         xaxis_title=test_feature,
-        yaxis_title='Hit Ratio',
+        yaxis_title="Hit Ratio",
         showlegend=True
     )
 
@@ -152,41 +152,41 @@ def numeric_plot(model, data, test_feature, n_bins=5):
             model.cv,    
             model.X,
         ], axis=1)
-    df = df.loc[df['fold'] >= 10]
+    df = df.loc[df["fold"] >= 10]
     df[test_feature] = data.df[test_feature]
-    df['current_model'] = model.yhat_proba(df.drop(columns=[model.y.name, model.cv.name, test_feature]))
-    df['test_model'] = model2.yhat_proba(df.drop(columns=[model.y.name, model.cv.name]))
+    df["current_model"] = model.yhat_proba(df.drop(columns=[model.y.name, model.cv.name, test_feature]))
+    df["test_model"] = model2.yhat_proba(df.drop(columns=[model.y.name, model.cv.name]))
 
-    bins = pd.qcut(df[test_feature], n_bins, duplicates='drop')
-    df['bin'] = bins
-    df['bin'] = df['bin'].astype(str)
+    bins = pd.qcut(df[test_feature], n_bins, duplicates="drop")
+    df["bin"] = bins
+    df["bin"] = df["bin"].astype(str)
 
-    count_by_level = df.groupby('bin').count()[['hit_count']].reset_index().rename(columns={'hit_count': 'count'})
+    count_by_level = df.groupby("bin").count()[["hit_count"]].reset_index().rename(columns={"hit_count": "count"})
 
     ave_by_level = (
-        df.groupby('bin')
-        .mean()[['hit_count', 'current_model', 'test_model']]
+        df.groupby("bin")
+        .mean()[["hit_count", "current_model", "test_model"]]
         .reset_index()
-        .set_index('bin')
+        .set_index("bin")
         .join(
-            count_by_level.set_index('bin'),
-            on='bin'
+            count_by_level.set_index("bin"),
+            on="bin"
         ).reset_index()
-        .sort_values('bin', ascending=True)
+        .sort_values("bin", ascending=True)
     )
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     fig.add_trace(
         go.Bar(
-            x=ave_by_level['bin'],
-            y=ave_by_level['count'],
-            name='Count',
+            x=ave_by_level["bin"],
+            y=ave_by_level["count"],
+            name="Count",
             marker=dict(
-                color='gray',
+                color="gray",
                 opacity=0.5,
                 line=dict(
-                    color='black',
+                    color="black",
                     width=0.5
                 )
             ),
@@ -198,21 +198,21 @@ def numeric_plot(model, data, test_feature, n_bins=5):
 
     fig.add_trace(
         go.Scattergl(
-            x=ave_by_level['bin'],
-            y=ave_by_level['hit_count'],
-            mode='lines+markers',
-            name='Actual',
+            x=ave_by_level["bin"],
+            y=ave_by_level["hit_count"],
+            mode="lines+markers",
+            name="Actual",
             marker=dict(
                 size=10,
-                color='blue',
+                color="blue",
                 opacity=0.5,
                 line=dict(
-                    color='black',
+                    color="black",
                     width=0.5
                 )
             ),
             line=dict(
-                color='blue',
+                color="blue",
                 width=2
             ),
 
@@ -222,24 +222,24 @@ def numeric_plot(model, data, test_feature, n_bins=5):
 
     fig.add_trace(
         go.Scattergl(
-            x=ave_by_level['bin'],
-            y=ave_by_level['current_model'],
-            mode='lines+markers',
-            name='Current Model',
+            x=ave_by_level["bin"],
+            y=ave_by_level["current_model"],
+            mode="lines+markers",
+            name="Current Model",
             marker=dict(
                 size=10,
-                color='red',
+                color="red",
                 opacity=0.5,
                 line=dict(
-                    color='black',
+                    color="black",
                     width=0.5
                 )
             ),
 
             line=dict(
-                color='red',
+                color="red",
                 width=1.5,
-                dash='dashdot'
+                dash="dashdot"
             ),
         ),
             secondary_y=False
@@ -247,32 +247,32 @@ def numeric_plot(model, data, test_feature, n_bins=5):
 
     fig.add_trace(
         go.Scattergl(
-            x=ave_by_level['bin'],
-            y=ave_by_level['test_model'],
-            mode='lines+markers',
-            name='Test Model',
+            x=ave_by_level["bin"],
+            y=ave_by_level["test_model"],
+            mode="lines+markers",
+            name="Test Model",
             marker=dict(
                 size=7,
-                color='green',
+                color="green",
                 opacity=0.5,
                 line=dict(
-                    color='black',
+                    color="black",
                     width=0.5
                 )
             ),
             line=dict(
-                color='green',
+                color="green",
                 width=1.5,
-                dash='dashdot'
+                dash="dashdot"
             ),
         ),
             secondary_y=False
     )
 
     fig.update_layout(
-        title='Actual vs. Model Predictions',
+        title="Actual vs. Model Predictions",
         xaxis_title=test_feature,
-        yaxis_title='Hit Ratio',
+        yaxis_title="Hit Ratio",
         showlegend=True
     )
 
@@ -280,7 +280,6 @@ def numeric_plot(model, data, test_feature, n_bins=5):
 
     return fig
 
-import polars as pl
 def marginal_effect_distro(df:pl.LazyFrame, feature_name: str | None = None, by: str | None = None):
     import plotly.graph_objects as go
     import plotly.express as px
@@ -288,42 +287,42 @@ def marginal_effect_distro(df:pl.LazyFrame, feature_name: str | None = None, by:
     fig = go.Figure()
     
     if feature_name is not None:
-        df = df.filter(pl.col('term') == feature_name)
+        df = df.filter(pl.col("term") == feature_name)
         
     cols_to_drop_for_customdata = [
-        'rowid',
-        'contrast',
-        'std_error',
-        'statistic',
-        'p_value',
-        'conf_low',
-        's_value',
-        'conf_high',
-        'predicted',
-        'predicted_lo',
-        'predicted_hi',   
+        "rowid",
+        "contrast",
+        "std_error",
+        "statistic",
+        "p_value",
+        "conf_low",
+        "s_value",
+        "conf_high",
+        "predicted",
+        "predicted_lo",
+        "predicted_hi",   
     ]
     
     customdata = df.drop(cols_to_drop_for_customdata).collect().to_pandas()
     
     for col in customdata.columns:
-        if col.startswith('is_') or col.startswith('has_'):
+        if col.startswith("is_") or col.startswith("has_"):
             customdata[col] = customdata[col].round(0).astype(int)
         
         
-    hovertemplate='<b>dy/d[%{customdata[0]}] = %{customdata[1]:.1%}</b><br>'
+    hovertemplate="<b>dy/d[%{customdata[0]}] = %{customdata[1]:.1%}</b><br>"
     for i, dterm in enumerate(customdata.columns.tolist()[2:]):
         hovertemplate += f"<br><b>{dterm}:</b> "
-        hovertemplate += '%{customdata[' 
-        hovertemplate += f'{i+2}'
+        hovertemplate += "%{customdata[" 
+        hovertemplate += f"{i+2}"
         if customdata.iloc[:, i].dtype == float:
-            hovertemplate += ']:.2f}'
+            hovertemplate += "]:.2f}"
         else:
-            hovertemplate += ']}'
+            hovertemplate += "]}"
         
     params = dict(
-        x=df.select('term').collect()['term'],
-        y=df.select('estimate').collect()['estimate'],
+        x=df.select("term").collect()["term"],
+        y=df.select("estimate").collect()["estimate"],
         line=dict(
             width=1
         ),
@@ -345,7 +344,7 @@ def marginal_effect_distro(df:pl.LazyFrame, feature_name: str | None = None, by:
         for i, level in enumerate(df.select(pl.col(by)).unique().collect()[by].to_list()):
             params = dict(
                 x=df.filter(pl.col(by)==level).select(by).collect()[by],
-                y=df.filter(pl.col(by)==level).select('estimate').collect()['estimate'],
+                y=df.filter(pl.col(by)==level).select("estimate").collect()["estimate"],
                 line=dict(
                     width=1
                 ),
@@ -374,13 +373,13 @@ def marginal_effect_distro(df:pl.LazyFrame, feature_name: str | None = None, by:
         )
     else:
         layout=dict(
-            title=dict(text=f"Distribution of marginal effects of all features"),
+            title=dict(text="Distribution of marginal effects of all features"),
             yaxis=dict(
-                title=f"<b>Hit ratio impact</b><br>Unit increase to <i>each feature</i>"
+                title="<b>Hit ratio impact</b><br>Unit increase to <i>each feature</i>"
             )
         )
         
-    layout['width'] = 900
-    layout['height'] = 800
+    layout["width"] = 900
+    layout["height"] = 800
     fig.update_layout(**layout)
     return fig
